@@ -475,7 +475,7 @@ Bu ayrım kayda geçirildi çünkü dışarıdan bakıldığında ikisi aynı g�
 - [x] Tutor Eval raporu — [`TUTOR-EVAL.md`](./TUTOR-EVAL.md) · kural uyumu %85, 20 oturum
 - [x] Cypress test takımı — [`cypress/e2e/primer.cy.js`](./cypress/e2e/primer.cy.js) · 20 test: 13'ü 10 kabul örneğini, 7'si sohbet sözleşmesini doğruluyor
 - [x] Cypress koşumu — **20/20 geçti** (13 simülasyon + 7 sohbet), 22 sn, Cypress 16.2.1, yayındaki uygulamaya karşı (2026-10-29)
-- [ ] 60 saniyelik demo video
+- [x] 60 saniyelik demo video — <https://youtube.com/shorts/akFFeEdus34>
 - [x] `README.md` — 3 ürün kararı + fikir değişikliği anlatısı (serbest sohbet)
 - [x] Arkadaş testi geri bildirim notu — [`TUTOR-EVAL.md`](./TUTOR-EVAL.md) §4.4, bulgu **AC10**'a dönüştürüldü
 - [x] Sohbet için uçtan uca test — [`cypress/e2e/sohbet.cy.js`](./cypress/e2e/sohbet.cy.js) · 7 test

@@ -8,7 +8,7 @@
 |---|---|---|
 | 1 | **Repo** | <https://github.com/gonulnazire/primer> |
 | 2 | **Çalışan uygulama** | <https://primer-1.ai.studio/> |
-| 3 | **60 sn demo video** | *(yükleme sonrası eklenecek)* |
+| 3 | **60 sn demo video** | <https://youtube.com/shorts/akFFeEdus34> |
 
 ## Puanlama kalemleri nerede
 
