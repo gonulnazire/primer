@@ -2,7 +2,24 @@
 
 **Yazılım mühendisliği öğrencileri için Sokratik kriz simülasyonu.**
 
-🔗 **Uygulama:** <https://primer-1.ai.studio/>
+## Teslim linkleri
+
+| # | Ne | Link |
+|---|---|---|
+| 1 | **Repo** | <https://github.com/gonulnazire/primer> |
+| 2 | **Çalışan uygulama** | <https://primer-1.ai.studio/> |
+| 3 | **60 sn demo video** | *(yükleme sonrası eklenecek)* |
+
+## Puanlama kalemleri nerede
+
+| Kalem | Puan | Dosya |
+|---|---|---|
+| spec.md — problem, kapsam dışı, kabul örnekleri, akış şeması | 20 | [`spec.md`](./spec.md) · §1 problem · §2 kapsam dışı · §3 akış şeması · §7 **10 kabul örneği** |
+| Tasarım — Stitch ekranları + DESIGN.md | 15 | [`DESIGN.md`](./DESIGN.md) · §4 ekranlar · §9 üretim notları · `stitch_*/` **7 ekran** |
+| Çalışan uygulama — telefonda baştan sona | 20 | <https://primer-1.ai.studio/> |
+| Tutor eval — 20 cevap, hata türleri, oran, örnek | 25 | [`TUTOR-EVAL.md`](./TUTOR-EVAL.md) · **%85 kural uyumu** |
+| Cypress — tüm yollar E2E + demo video | 10 | [`cypress/e2e/primer.cy.js`](./cypress/e2e/primer.cy.js) · **13/13 geçiyor** |
+| Ürün kararı — 3 özellik + tek cümle neden | 10 | [Aşağıdaki tablo](#ürün-kararları--yapmadığım-üç-özellik) |
 
 ---
 
