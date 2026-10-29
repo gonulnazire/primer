@@ -1,0 +1,21 @@
+# Bağımlılıklar — package.json + package-lock.json yeterli (26 MB)
+node_modules/
+
+# Cypress ekran görüntüleri her koşumda silinip yeniden üretiliyor;
+# kalıcı kanıt değil. Koşum videoları ise demo kanıtı olduğu için repoda.
+cypress/screenshots/
+
+# Ortam değişkenleri — API anahtarı asla repoya girmemeli
+.env
+.env.*
+
+# İşletim sistemi / editör artıkları
+Thumbs.db
+.DS_Store
+desktop.ini
+.vscode/
+.idea/
+
+# Günlükler
+*.log
+npm-debug.log*

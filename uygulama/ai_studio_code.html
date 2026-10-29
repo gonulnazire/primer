@@ -1,0 +1,983 @@
+<!DOCTYPE html>
+<html lang="tr" class="h-full bg-[#0E1116]">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Primer — Sokratik Mühendislik Simülasyonu</title>
+  
+  <!-- Fonts & Icons -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet">
+
+  <!-- Tailwind CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+          },
+          colors: {
+            surface: '#0E1116',
+            'surface-container': '#161B22',
+            'surface-container-highest': '#222A35',
+            'on-surface': '#E6EAF0',
+            secondary: '#9AA6B8',
+            primary: '#E8A33D',
+            'primary-container': '#E8A33D',
+            'on-primary': '#0E1116',
+            error: '#D96F63',
+          }
+        }
+      }
+    };
+  </script>
+
+  <style>
+    * {
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: #0E1116;
+      color: #E6EAF0;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      justify-content: center;
+      min-height: 100vh;
+      min-height: 100dvh;
+      overflow-x: hidden;
+    }
+
+    /* Screen viewports target 390px */
+    .app-viewport {
+      width: 100%;
+      max-width: 390px;
+      min-height: 100vh;
+      min-height: 100dvh;
+      background-color: #0E1116;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+    }
+
+    /* Smooth subtle view transitions */
+    .screen-view {
+      display: none;
+      flex-direction: column;
+      flex: 1;
+      width: 100%;
+      animation: fadeIn 0.18s ease-out;
+    }
+
+    .screen-view.active {
+      display: flex;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(3px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Soft pulse for loading skeleton */
+    @keyframes softPulse {
+      0%, 100% { opacity: 0.35; }
+      50% { opacity: 0.8; }
+    }
+    .skeleton-bar {
+      animation: softPulse 1.4s ease-in-out infinite;
+    }
+
+    /* Decision options strictly identical */
+    .decision-btn-core {
+      min-height: 52px;
+      padding: 16px;
+      border-radius: 12px;
+      background-color: #161B22;
+      border: 1px solid #222A35;
+      text-align: left;
+      color: #E6EAF0;
+      font-size: 15px;
+      line-height: 1.45;
+      font-weight: 400;
+      width: 100%;
+      display: flex;
+      align-items: center;
+      cursor: pointer;
+      outline: none;
+      transition: background-color 0.12s, border-color 0.12s, transform 0.1s;
+    }
+    .decision-btn-core:active {
+      background-color: #1C232C;
+      transform: scale(0.99);
+    }
+    .decision-btn-core:focus-visible {
+      border-color: #E8A33D;
+    }
+  </style>
+</head>
+<body class="bg-[#0E1116]">
+
+<div class="app-viewport">
+
+  <!-- ========================================================= -->
+  <!-- E1: PROFİL SEÇİMİ                                          -->
+  <!-- ========================================================= -->
+  <main id="screen-e1" class="screen-view active px-5 py-4 pb-8 flex-col justify-between">
+    <div class="flex flex-col w-full">
+      
+      <header class="flex items-center justify-between pt-2 pb-5">
+        <div>
+          <div class="flex items-center gap-2">
+            <h1 class="text-[28px] leading-[34px] font-semibold tracking-tight text-[#E6EAF0]">Primer</h1>
+            <span class="w-2 h-2 rounded-full bg-[#E8A33D] inline-block animate-pulse"></span>
+          </div>
+          <p class="text-[14px] leading-5 text-[#9AA6B8] mt-1.5 font-normal">
+            Üç soru, sonra başlıyoruz.
+          </p>
+        </div>
+
+        <!-- Optional discreet API Key button for Gemini -->
+        <button id="btn-open-apikey-dialog" aria-label="API Anahtarı Girişi" class="p-2 text-[#9AA6B8] hover:text-[#E8A33D] transition-colors focus:outline-none">
+          <span class="material-symbols-outlined text-[20px]">key</span>
+        </button>
+      </header>
+
+      <!-- 3-Dot Progress Indicator for Profile -->
+      <div class="flex items-center gap-1.5 mb-6" aria-hidden="true">
+        <div id="p-dot-1" class="h-1 flex-1 rounded-full bg-[#222A35] transition-colors duration-300"></div>
+        <div id="p-dot-2" class="h-1 flex-1 rounded-full bg-[#222A35] transition-colors duration-300"></div>
+        <div id="p-dot-3" class="h-1 flex-1 rounded-full bg-[#222A35] transition-colors duration-300"></div>
+      </div>
+
+      <div class="flex flex-col gap-6">
+        <!-- Q1: Sınıf -->
+        <section class="flex flex-col gap-2.5">
+          <span class="text-[12px] leading-4 text-[#9AA6B8] uppercase tracking-[0.04em] font-medium">
+            KAÇINCI SINIFTASIN?
+          </span>
+          <div role="radiogroup" aria-label="Kaçıncı sınıftasın?" data-testid="profil-sinif" class="grid grid-cols-2 gap-3">
+            <button type="button" data-group="sinif" data-value="1-2" class="profile-opt min-h-[48px] h-12 px-4 rounded-xl bg-[#161B22] border border-[#222A35] text-[#E6EAF0] text-[16px] font-medium flex items-center justify-center transition-all duration-150 active:scale-[0.98]">
+              1-2
+            </button>
+            <button type="button" data-group="sinif" data-value="3-4" class="profile-opt min-h-[48px] h-12 px-4 rounded-xl bg-[#161B22] border border-[#222A35] text-[#E6EAF0] text-[16px] font-medium flex items-center justify-center transition-all duration-150 active:scale-[0.98]">
+              3-4
+            </button>
+          </div>
+        </section>
+
+        <!-- Q2: Rol -->
+        <section class="flex flex-col gap-2.5">
+          <span class="text-[12px] leading-4 text-[#9AA6B8] uppercase tracking-[0.04em] font-medium">
+            HANGİ ROLE YAKINSIN?
+          </span>
+          <div role="radiogroup" aria-label="Hangi role yakınsın?" data-testid="profil-rol" class="grid grid-cols-3 gap-2">
+            <button type="button" data-group="rol" data-value="frontend" class="profile-opt min-h-[48px] h-12 px-2 rounded-xl bg-[#161B22] border border-[#222A35] text-[#E6EAF0] text-[12px] font-medium flex items-center justify-center text-center transition-all duration-150 active:scale-[0.98]">
+              Frontend
+            </button>
+            <button type="button" data-group="rol" data-value="backend" class="profile-opt min-h-[48px] h-12 px-2 rounded-xl bg-[#161B22] border border-[#222A35] text-[#E6EAF0] text-[12px] font-medium flex items-center justify-center text-center transition-all duration-150 active:scale-[0.98]">
+              Backend
+            </button>
+            <button type="button" data-group="rol" data-value="bilmiyorum" class="profile-opt min-h-[48px] h-12 px-1 rounded-xl bg-[#161B22] border border-[#222A35] text-[#E6EAF0] text-[12px] font-medium flex items-center justify-center text-center leading-tight transition-all duration-150 active:scale-[0.98]">
+              Henüz bilmiyorum
+            </button>
+          </div>
+        </section>
+
+        <!-- Q3: Hedef -->
+        <section class="flex flex-col gap-2.5">
+          <span class="text-[12px] leading-4 text-[#9AA6B8] uppercase tracking-[0.04em] font-medium">
+            ŞU AN SENİN İÇİN ÖNEMLİ OLAN?
+          </span>
+          <div role="radiogroup" aria-label="Şu an senin için önemli olan?" data-testid="profil-hedef" class="flex flex-col gap-2">
+            <button type="button" data-group="hedef" data-value="staj" class="profile-opt min-h-[48px] h-12 px-4 rounded-xl bg-[#161B22] border border-[#222A35] text-[#E6EAF0] text-[16px] font-medium flex items-center justify-between text-left transition-all duration-150 active:scale-[0.98]">
+              <span>Staj bulmak</span>
+              <span class="indicator-icon material-symbols-outlined text-[18px] opacity-0 text-[#E8A33D] transition-opacity">check_circle</span>
+            </button>
+            <button type="button" data-group="hedef" data-value="proje" class="profile-opt min-h-[48px] h-12 px-4 rounded-xl bg-[#161B22] border border-[#222A35] text-[#E6EAF0] text-[16px] font-medium flex items-center justify-between text-left transition-all duration-150 active:scale-[0.98]">
+              <span>Projeyi bitirmek</span>
+              <span class="indicator-icon material-symbols-outlined text-[18px] opacity-0 text-[#E8A33D] transition-opacity">check_circle</span>
+            </button>
+            <button type="button" data-group="hedef" data-value="ogrenme" class="profile-opt min-h-[48px] h-12 px-4 rounded-xl bg-[#161B22] border border-[#222A35] text-[#E6EAF0] text-[16px] font-medium flex items-center justify-between text-left transition-all duration-150 active:scale-[0.98]">
+              <span>Öğrenmek</span>
+              <span class="indicator-icon material-symbols-outlined text-[18px] opacity-0 text-[#E8A33D] transition-opacity">check_circle</span>
+            </button>
+          </div>
+        </section>
+      </div>
+    </div>
+
+    <!-- Devam Action -->
+    <div class="mt-8 flex flex-col items-center">
+      <button id="cta-button" data-testid="profil-devam" type="button" disabled class="w-full min-h-[48px] h-12 rounded-xl text-[16px] font-semibold flex items-center justify-center transition-all duration-200 cursor-not-allowed bg-[#222A35] text-[#9AA6B8] shadow-sm">
+        Devam
+      </button>
+      <p class="text-[12px] leading-4 text-[#9AA6B8] mt-3 text-center font-normal">
+        Cevapların kaydedilmiyor.
+      </p>
+    </div>
+  </main>
+
+
+  <!-- ========================================================= -->
+  <!-- E2: SENARYO MENÜSÜ                                         -->
+  <!-- ========================================================= -->
+  <main id="screen-e2" class="screen-view px-5 py-4 pb-8 flex-col justify-start">
+    <div class="flex items-center mb-5">
+      <button id="btn-back-to-profile" type="button" aria-label="Profile sayfasına dön" class="group flex items-center gap-1.5 py-2 pr-4 -ml-1 text-[#9AA6B8] hover:text-[#E6EAF0] transition-colors duration-150 focus:outline-none">
+        <span aria-hidden="true" class="material-symbols-outlined text-lg leading-none transition-transform group-active:-translate-x-0.5">arrow_back</span>
+        <span class="text-[14px] leading-5">Profil</span>
+      </button>
+    </div>
+
+    <header class="flex flex-col mb-6">
+      <h1 class="text-[28px] leading-[34px] font-semibold tracking-[-0.015em] text-[#E6EAF0] mb-1.5">
+        Hangi krizi yaşayalım?
+      </h1>
+      <p class="text-[14px] leading-5 text-[#9AA6B8]">
+        Üçünü de oynayabilirsin.
+      </p>
+    </header>
+
+    <div class="flex flex-col gap-3">
+      <!-- Kriz 1: Dönem Projesi -->
+      <div data-testid="senaryo-donem-projesi" data-scenario="donem-projesi" role="button" tabindex="0" class="scenario-card group relative flex flex-col p-5 rounded-[16px] bg-[#161B22] border border-[#222A35] transition-all duration-200 active:scale-[0.985] active:bg-[#1C232C] cursor-pointer outline-none focus-visible:border-[#E8A33D]">
+        <div class="flex flex-col mb-4">
+          <h2 class="text-[18px] leading-6 font-semibold tracking-[-0.005em] text-[#E6EAF0] mb-1.5">
+            Dönem projesi krizi
+          </h2>
+          <p class="text-[14px] leading-[1.4] text-[#9AA6B8]">
+            Teslime 48 saat, main bozuk, biri kayıp.
+          </p>
+        </div>
+        <div class="flex items-center justify-between mt-auto pt-1">
+          <span class="text-[13px] leading-4 text-[#9AA6B8]">~3 dk</span>
+          <span aria-hidden="true" class="text-[#E8A33D] text-[18px] leading-none transition-transform duration-200 group-hover:translate-x-0.5">→</span>
+        </div>
+      </div>
+
+      <!-- Kriz 2: İlk Staj Task'ın -->
+      <div data-testid="senaryo-staj-task" data-scenario="staj-task" role="button" tabindex="0" class="scenario-card group relative flex flex-col p-5 rounded-[16px] bg-[#161B22] border border-[#222A35] transition-all duration-200 active:scale-[0.985] active:bg-[#1C232C] cursor-pointer outline-none focus-visible:border-[#E8A33D]">
+        <div class="flex flex-col mb-4">
+          <h2 class="text-[18px] leading-6 font-semibold tracking-[-0.005em] text-[#E6EAF0] mb-1.5">
+            İlk staj task'ın
+          </h2>
+          <p class="text-[14px] leading-[1.4] text-[#9AA6B8]">
+            Mentor izinde, canlı veriye dokunman gerek.
+          </p>
+        </div>
+        <div class="flex items-center justify-between mt-auto pt-1">
+          <span class="text-[13px] leading-4 text-[#9AA6B8]">~3 dk</span>
+          <span aria-hidden="true" class="text-[#E8A33D] text-[18px] leading-none transition-transform duration-200 group-hover:translate-x-0.5">→</span>
+        </div>
+      </div>
+
+      <!-- Kriz 3: Vize Haftası -->
+      <div data-testid="senaryo-vize-haftasi" data-scenario="vize-haftasi" role="button" tabindex="0" class="scenario-card group relative flex flex-col p-5 rounded-[16px] bg-[#161B22] border border-[#222A35] transition-all duration-200 active:scale-[0.985] active:bg-[#1C232C] cursor-pointer outline-none focus-visible:border-[#E8A33D]">
+        <div class="flex flex-col mb-4">
+          <h2 class="text-[18px] leading-6 font-semibold tracking-[-0.005em] text-[#E6EAF0] mb-1.5">
+            Vize haftası
+          </h2>
+          <p class="text-[14px] leading-[1.4] text-[#9AA6B8]">
+            Üç sınav, bir grup ödevi ve kopya şüphesi.
+          </p>
+        </div>
+        <div class="flex items-center justify-between mt-auto pt-1">
+          <span class="text-[13px] leading-4 text-[#9AA6B8]">~3 dk</span>
+          <span aria-hidden="true" class="text-[#E8A33D] text-[18px] leading-none transition-transform duration-200 group-hover:translate-x-0.5">→</span>
+        </div>
+      </div>
+    </div>
+  </main>
+
+
+  <!-- ========================================================= -->
+  <!-- E3: KRİZ VE KARAR (3 ADIM)                                -->
+  <!-- ========================================================= -->
+  <main id="screen-e3" class="screen-view px-5 pb-8 flex-col justify-between">
+    <div class="flex flex-col w-full">
+      <!-- Top Bar: Back to Menu & Step Progress -->
+      <header class="flex items-center justify-between pt-3 pb-6">
+        <button id="btn-back-to-menu" type="button" aria-label="Menüye geri dön" class="group flex items-center gap-1.5 py-2 text-[#9AA6B8] hover:text-[#E6EAF0] transition-colors focus:outline-none">
+          <span class="text-[14px] leading-5">← Menü</span>
+        </button>
+
+        <div data-testid="ilerleme" role="progressbar" aria-label="Kriz adımı 1 / 3" aria-valuemin="1" aria-valuemax="3" aria-valuenow="1" class="flex items-center gap-1.5">
+          <span id="crisis-dot-1" class="w-2 h-2 rounded-full bg-[#E8A33D]"></span>
+          <span id="crisis-dot-2" class="w-2 h-2 rounded-full border border-[#222A35] bg-transparent"></span>
+          <span id="crisis-dot-3" class="w-2 h-2 rounded-full border border-[#222A35] bg-transparent"></span>
+        </div>
+      </header>
+
+      <!-- Context Card -->
+      <section class="relative bg-[#161B22] rounded-[16px] border border-[#222A35] overflow-hidden shadow-lg mb-6 flex">
+        <div class="w-[3px] bg-[#E8A33D] shrink-0 self-stretch"></div>
+        <div class="p-4 flex-1">
+          <p id="kriz-text-content" data-testid="kriz-metni" class="text-[15px] leading-relaxed text-[#E6EAF0]">
+            <!-- Dynamic crisis text -->
+          </p>
+        </div>
+      </section>
+
+      <!-- Decision Heading -->
+      <h1 id="decision-heading" class="text-[26px] leading-[32px] font-semibold text-[#E6EAF0] tracking-tight mb-4">
+        Ne yapıyorsun?
+      </h1>
+
+      <!-- Decision Options Group (Visually Identical Buttons) -->
+      <div role="radiogroup" aria-label="Karar seçenekleri" class="flex flex-col gap-3 mb-6">
+        <button type="button" data-testid="secenek-0" data-idx="0" class="decision-btn-core">
+          <span class="decision-label pointer-events-none"></span>
+        </button>
+        <button type="button" data-testid="secenek-1" data-idx="1" class="decision-btn-core">
+          <span class="decision-label pointer-events-none"></span>
+        </button>
+        <button type="button" data-testid="secenek-2" data-idx="2" class="decision-btn-core">
+          <span class="decision-label pointer-events-none"></span>
+        </button>
+      </div>
+    </div>
+
+    <footer class="pt-2 flex items-center justify-center">
+      <p class="text-[12px] text-[#9AA6B8] text-center select-none">
+        Seçtikten sonra geri dönemezsin.
+      </p>
+    </footer>
+  </main>
+
+
+  <!-- ========================================================= -->
+  <!-- E4: SONUÇ & SOKRATİK REHBER                               -->
+  <!-- ========================================================= -->
+  <main id="screen-e4" class="screen-view px-5 py-6 pb-8 flex-col justify-between">
+    <div class="flex flex-col w-full space-y-5">
+      
+      <!-- Sonuç Bandı -->
+      <section id="result-banner" data-testid="sonuc-bandi" class="relative overflow-hidden rounded-xl border p-4 shadow-sm">
+        <div id="banner-accent-bg" class="absolute inset-0 pointer-events-none"></div>
+        <div class="relative flex items-center justify-between">
+          <div class="flex items-center space-x-3.5">
+            <div id="banner-bar" class="w-1.5 h-10 rounded-full shrink-0"></div>
+            <div class="flex flex-col">
+              <div class="flex items-center space-x-2">
+                <span id="banner-title" class="text-[20px] leading-7 font-semibold tracking-tight text-[#E6EAF0]"></span>
+              </div>
+              <span id="banner-count" class="text-[12px] leading-4 text-[#9AA6B8] mt-0.5"></span>
+            </div>
+          </div>
+          <div id="banner-icon-box" class="w-10 h-10 rounded-full flex items-center justify-center shrink-0">
+            <span id="banner-icon" class="material-symbols-outlined text-[22px]"></span>
+          </div>
+        </div>
+      </section>
+
+      <!-- Ending Narrative Paragraph -->
+      <section class="px-1">
+        <p id="result-story-text" class="text-[16px] leading-[25px] text-[#E6EAF0] font-normal">
+          <!-- Exact ending text -->
+        </p>
+      </section>
+
+      <!-- Socratic Quote Block (No success labels, pure inquiry) -->
+      <section data-testid="sokratik-blok" class="bg-[#161B22] rounded-[16px] border border-[#222A35] p-5 relative shadow-md">
+        <div class="flex flex-col space-y-3">
+          <div aria-hidden="true" class="w-7 h-7 flex items-center justify-start text-[#E8A33D] select-none">
+            <svg class="w-6 h-6 fill-current" viewBox="0 0 24 24">
+              <path d="M9.983 3v7.391c0 5.704-3.731 9.57-8.983 10.609l-.995-2.151c2.432-.917 3.995-3.638 3.995-5.849h-4v-10h9.983zm14.017 0v7.391c0 5.704-3.748 9.571-9 10.609l-.996-2.151c2.433-.917 3.996-3.638 3.996-5.849h-3.983v-10h9.983z"/>
+            </svg>
+          </div>
+          
+          <div id="socratic-content-container" class="min-h-[72px] flex flex-col justify-center">
+            <!-- Loading Skeleton / Loaded Text / Error Fallback -->
+          </div>
+        </div>
+      </section>
+
+    </div>
+
+    <!-- E4 Action Buttons -->
+    <footer class="pt-6 flex flex-col space-y-3 w-full">
+      <button id="btn-next-crisis" data-testid="bastan-basla" type="button" class="w-full min-h-[48px] h-12 bg-[#E8A33D] text-[#0E1116] font-semibold text-[15px] rounded-xl flex items-center justify-center space-x-2 active:scale-[0.98] transition-all cursor-pointer shadow-sm">
+        <span>Başka bir kriz dene</span>
+        <span class="material-symbols-outlined text-[18px]">arrow_forward</span>
+      </button>
+      <button id="btn-replay-crisis" type="button" class="w-full min-h-[48px] h-12 text-[#E8A33D] font-medium text-[15px] flex items-center justify-center space-x-1.5 active:opacity-75 transition-opacity cursor-pointer">
+        <span class="material-symbols-outlined text-[18px]">replay</span>
+        <span>Aynı krizi tekrar oyna</span>
+      </button>
+    </footer>
+  </main>
+
+
+  <!-- ========================================================= -->
+  <!-- API KEY MODAL (Optional live key setting)                  -->
+  <!-- ========================================================= -->
+  <div id="apikey-dialog" class="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm hidden items-center justify-center px-4">
+    <div class="bg-[#161B22] border border-[#222A35] rounded-2xl p-5 w-full max-w-[340px] shadow-2xl">
+      <div class="flex items-center justify-between mb-3">
+        <h3 class="text-[16px] font-semibold text-[#E6EAF0]">Gemini API Anahtarı</h3>
+        <button id="btn-close-apikey-dialog" class="text-[#9AA6B8] hover:text-[#E6EAF0]">
+          <span class="material-symbols-outlined text-[20px]">close</span>
+        </button>
+      </div>
+      <p class="text-[12px] leading-relaxed text-[#9AA6B8] mb-4">
+        Sokratik tutor canlı çağrısı için API anahtarı ekleyebilirsin. Girilmezse sokratik yedek soru gösterilir.
+      </p>
+      <input id="apikey-input" type="password" placeholder="AIzaSy..." class="w-full bg-[#0E1116] border border-[#222A35] rounded-xl px-3.5 py-2.5 text-[14px] text-[#E6EAF0] focus:border-[#E8A33D] outline-none mb-4">
+      <div class="flex gap-2 justify-end">
+        <button id="btn-save-apikey" class="px-4 py-2 bg-[#E8A33D] text-[#0E1116] rounded-xl text-[14px] font-semibold">
+          Kaydet
+        </button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+
+<!-- ========================================================= -->
+<!-- SIMULATION SCRIPT & CLIENT STATE                          -->
+<!-- ========================================================= -->
+<script>
+(() => {
+  // -------------------------------------------------------------
+  // STATE MANAGEMENT
+  // -------------------------------------------------------------
+  const profile = {
+    sinif: null,   // "1-2" | "3-4"
+    rol: null,     // "frontend" | "backend" | "bilmiyorum"
+    hedef: null    // "staj" | "proje" | "ogrenme"
+  };
+
+  const run = {
+    senaryoId: null,   // "donem-projesi" | "staj-task" | "vize-haftasi"
+    adim: 0,           // 0, 1, 2
+    kararlar: [],      // array of "saglam" | "orta" | "riskli"
+    kararMetinleri: [] // array of selected option strings
+  };
+
+  // Check URL param or in-memory key for Gemini
+  // API anahtari URL parametresinden OKUNMAZ. URL'ler tarayici gecmisine,
+  // sunucu loglarina ve referrer basliklarina yazilir; paylasilan link veya
+  // QR anahtari da tasir. Anahtar yalnizca apikey-dialog ile alinir ve
+  // bellekte tutulur, diske yazilmaz.
+  let geminiApiKey = window.GEMINI_API_KEY || '';
+
+  // -------------------------------------------------------------
+  // EXACT DATA DEFINITIONS (Zero modifications to narrative)
+  // -------------------------------------------------------------
+  const SCENARIOS = {
+    "donem-projesi": {
+      id: "donem-projesi",
+      title: "Dönem projesi teslim krizi",
+      getSetup: (rol) => {
+        let variant = "Proje artık açılmıyor, hata mesajı anlaşılmaz.";
+        if (rol === "backend") {
+          variant = "Son migration veritabanını kilitledi, kimse projeyi local'de açamıyor.";
+        } else if (rol === "frontend") {
+          variant = "Build pipeline kırıldı, npm run build hata veriyor, kimse projeyi derleyemiyor.";
+        }
+        return `Teslime 48 saat kaldı. Üç kişilik takımdasınız. ${variant} Takım arkadaşlarınızdan biri iki gündür mesajlara cevap vermiyor. Hoca sunumda canlı demo bekliyor.`;
+      },
+      steps: [
+        {
+          heading: "Ne yapıyorsun?",
+          options: [
+            { text: "Son çalışan commit'e dön, kaybolan işi sonra ekle", tag: "saglam" },
+            { text: "Gece boyu hatayı debug et, çözene kadar uğraş", tag: "riskli" },
+            { text: "Kendi branch'inde minimal çalışan bir sürüm kur", tag: "orta" }
+          ]
+        },
+        {
+          heading: "Kayıp takım arkadaşın hâlâ sessiz. Ne yapıyorsun?",
+          options: [
+            { text: "Net bir süre veren son bir mesaj at, cevap gelmezse hocaya bildir", tag: "saglam" },
+            { text: "Hiçbir şey söyleme, onun işini de sen yap", tag: "riskli" },
+            { text: "Teslimden sonra durumu hocaya şikayet et", tag: "riskli" }
+          ]
+        },
+        {
+          heading: "Teslime 6 saat kaldı. Kapsamı nasıl bitiriyorsun?",
+          options: [
+            { text: "Çalışan 3 özelliği cilala, eksikleri sunumda açıkça söyle", tag: "saglam" },
+            { text: "8 özelliğin hepsini yarım bırak, demoda hızlı geç", tag: "riskli" },
+            { text: "Demoyu video olarak çek, canlı gösterim riskinden kaç", tag: "orta" }
+          ]
+        }
+      ],
+      endings: {
+        good: "Proje teslim edildi. Hoca eksikleri biliyordu, demo canlıda çalıştı.",
+        bad: "Demo sunumda çöktü. Hoca projeyi değil, hazırlıksızlığı gördü. Takım arkadaşın hiç ortaya çıkmadı."
+      }
+    },
+
+    "staj-task": {
+      id: "staj-task",
+      title: "İlk staj task'ın",
+      getSetup: (rol) => {
+        let variant = "yetkilendirilmemiş bir sisteme dokunmak";
+        if (rol === "backend") {
+          variant = "canlı veritabanında bir kaydı UPDATE etmek";
+        } else if (rol === "frontend") {
+          variant = "prod'a doğrudan bir hotfix göndermek";
+        }
+        return `Stajınızın ikinci haftası. Mentorunuz izinde. Size 'basit' denilen bir hata verildi: bir müşteri raporu yanlış toplam gösteriyor. Düzeltmek için ${variant} gerekiyor gibi görünüyor. Kimse size bu yetkiyi vermedi ama teknik erişiminiz var.`;
+      },
+      steps: [
+        {
+          heading: "Ne yapıyorsun?",
+          options: [
+            { text: "Durumu takım kanalına yazılı olarak sor, bekle", tag: "saglam" },
+            { text: "Hemen düzelt, küçük bir değişiklik, kimse fark etmez", tag: "riskli" },
+            { text: "Hatayı kendi kopyanda çoğalt, kanıtla, sonra öneri getir", tag: "orta" }
+          ]
+        },
+        {
+          heading: "İki saat geçti, kimse cevap vermedi. Ne yapıyorsun?",
+          options: [
+            { text: "Mentorun yerine bakan kişiyi bul ve doğrudan sor", tag: "saglam" },
+            { text: "Canlıda dene, önce yedek al", tag: "riskli" },
+            { text: "Task'ı beklet, başka işe geç, durumu yazılı not düş", tag: "orta" }
+          ]
+        },
+        {
+          heading: "Çözümü buldun ama test yok. Ne yapıyorsun?",
+          options: [
+            { text: "Küçük bir test yaz, sonra PR aç", tag: "saglam" },
+            { text: "Test yazmak stajyer işi değil, doğrudan PR aç", tag: "riskli" },
+            { text: "PR'ı aç ama 'test eklenmeli' notunu düş", tag: "orta" }
+          ]
+        }
+      ],
+      endings: {
+        good: "Mentorun döndüğünde sorunu yazılı bir özetle karşıladı. Düzeltme ertesi gün test edilip yayına alındı. Takım sana bir iş daha emanet etti.",
+        bad: "Canlı veriyi değiştirdin, rapor düzeldi. İki hafta sonra muhasebe tutmayan bir kayıt buldu; kimin ne zaman değiştirdiği belli değildi. Stajın kalanında sana erişim verilmedi."
+      }
+    },
+
+    "vize-haftasi": {
+      id: "vize-haftasi",
+      title: "Vize haftası çatışması",
+      getSetup: () => {
+        return "Üç gün içinde üç vizeniz var. Aynı hafta grup ödevi teslimi. Grup arkadaşınızın gönderdiği kod çalışıyor, ama internette neredeyse birebir aynısını buldunuz.";
+      },
+      steps: [
+        {
+          heading: "Ne yapıyorsun?",
+          options: [
+            { text: "Arkadaşına doğrudan ve yargılamadan sor", tag: "saglam" },
+            { text: "Hiçbir şey deme, olduğu gibi teslim et", tag: "riskli" },
+            { text: "Sessizce kendi kısmını ayır, onun kodunu kullanma", tag: "orta" }
+          ]
+        },
+        {
+          heading: "İki gün kaldı. Zamanı nasıl bölüyorsun?",
+          options: [
+            { text: "En ağır vizeye odaklan, ödevi geçer seviyede bitir", tag: "saglam" },
+            { text: "Ödevi mükemmel yap, vizelere gece çalış", tag: "riskli" },
+            { text: "Gruptan birlikte süre uzatımı talebi yazmayı öner", tag: "orta" }
+          ]
+        },
+        {
+          heading: "Teslim anı geldi. Ne yapıyorsun?",
+          options: [
+            { text: "Kendi katkını açıkça işaretleyip teslim et", tag: "saglam" },
+            { text: "Olduğu gibi, hiçbir not düşmeden teslim et", tag: "riskli" },
+            { text: "Teslimi geciktir, önce durumu netleştir", tag: "orta" }
+          ]
+        }
+      ],
+      endings: {
+        good: "Ödev geçer notu aldı, üç vizeden ikisini iyi verdin. Grup arkadaşın kodun kaynağını hocaya kendisi söyledi.",
+        bad: "Ödev intihal taramasına takıldı. Hoca grubun tamamını çağırdı; kodu kimin yazdığını kimse açıklayamadı. Vizelerden birine hazırlıksız girdin."
+      }
+    }
+  };
+
+  // -------------------------------------------------------------
+  // DOM REFERENCES
+  // -------------------------------------------------------------
+  const screens = {
+    e1: document.getElementById('screen-e1'),
+    e2: document.getElementById('screen-e2'),
+    e3: document.getElementById('screen-e3'),
+    e4: document.getElementById('screen-e4')
+  };
+
+  const pDots = [
+    document.getElementById('p-dot-1'),
+    document.getElementById('p-dot-2'),
+    document.getElementById('p-dot-3')
+  ];
+
+  const ctaBtn = document.getElementById('cta-button');
+  const btnBackToProfile = document.getElementById('btn-back-to-profile');
+  const btnBackToMenu = document.getElementById('btn-back-to-menu');
+  const btnNextCrisis = document.getElementById('btn-next-crisis');
+  const btnReplayCrisis = document.getElementById('btn-replay-crisis');
+
+  const crisisTextEl = document.getElementById('kriz-text-content');
+  const decisionHeadingEl = document.getElementById('decision-heading');
+  const decisionBtns = [
+    document.querySelector('[data-testid="secenek-0"]'),
+    document.querySelector('[data-testid="secenek-1"]'),
+    document.querySelector('[data-testid="secenek-2"]')
+  ];
+  const crisisDots = [
+    document.getElementById('crisis-dot-1'),
+    document.getElementById('crisis-dot-2'),
+    document.getElementById('crisis-dot-3')
+  ];
+
+  const resultBanner = document.getElementById('result-banner');
+  const bannerAccentBg = document.getElementById('banner-accent-bg');
+  const bannerBar = document.getElementById('banner-bar');
+  const bannerTitle = document.getElementById('banner-title');
+  const bannerCount = document.getElementById('banner-count');
+  const bannerIconBox = document.getElementById('banner-icon-box');
+  const bannerIcon = document.getElementById('banner-icon');
+  const resultStoryText = document.getElementById('result-story-text');
+  const socraticContainer = document.getElementById('socratic-content-container');
+
+  // API Key dialog elements
+  const apiKeyDialog = document.getElementById('apikey-dialog');
+  const btnOpenApiKey = document.getElementById('btn-open-apikey-dialog');
+  const btnCloseApiKey = document.getElementById('btn-close-apikey-dialog');
+  const btnSaveApiKey = document.getElementById('btn-save-apikey');
+  const apiKeyInput = document.getElementById('apikey-input');
+
+  // -------------------------------------------------------------
+  // NAVIGATION
+  // -------------------------------------------------------------
+  function showScreen(screenKey) {
+    Object.values(screens).forEach(el => el.classList.remove('active'));
+    screens[screenKey].classList.add('active');
+    window.scrollTo(0, 0);
+  }
+
+  // -------------------------------------------------------------
+  // E1: PROFILE LOGIC
+  // -------------------------------------------------------------
+  function updateProfileButtons() {
+    document.querySelectorAll('.profile-opt').forEach(btn => {
+      const grp = btn.getAttribute('data-group');
+      const val = btn.getAttribute('data-value');
+      const isSelected = (profile[grp] === val);
+
+      if (isSelected) {
+        btn.classList.add('border-[#E8A33D]', 'text-[#E8A33D]', 'bg-[#222A35]');
+        btn.classList.remove('border-[#222A35]', 'text-[#E6EAF0]', 'bg-[#161B22]');
+        const check = btn.querySelector('.indicator-icon');
+        if (check) check.classList.remove('opacity-0');
+      } else {
+        btn.classList.remove('border-[#E8A33D]', 'text-[#E8A33D]', 'bg-[#222A35]');
+        btn.classList.add('border-[#222A35]', 'text-[#E6EAF0]', 'bg-[#161B22]');
+        const check = btn.querySelector('.indicator-icon');
+        if (check) check.classList.add('opacity-0');
+      }
+    });
+
+    pDots[0].className = `h-1 flex-1 rounded-full transition-colors duration-300 ${profile.sinif ? 'bg-[#E8A33D]' : 'bg-[#222A35]'}`;
+    pDots[1].className = `h-1 flex-1 rounded-full transition-colors duration-300 ${profile.rol ? 'bg-[#E8A33D]' : 'bg-[#222A35]'}`;
+    pDots[2].className = `h-1 flex-1 rounded-full transition-colors duration-300 ${profile.hedef ? 'bg-[#E8A33D]' : 'bg-[#222A35]'}`;
+
+    const complete = profile.sinif && profile.rol && profile.hedef;
+    if (complete) {
+      ctaBtn.disabled = false;
+      ctaBtn.className = "w-full min-h-[48px] h-12 rounded-xl text-[16px] font-semibold flex items-center justify-center transition-all duration-200 cursor-pointer bg-[#E8A33D] text-[#0E1116] active:scale-[0.98] shadow-md hover:brightness-105";
+    } else {
+      ctaBtn.disabled = true;
+      ctaBtn.className = "w-full min-h-[48px] h-12 rounded-xl text-[16px] font-semibold flex items-center justify-center transition-all duration-200 cursor-not-allowed bg-[#222A35] text-[#9AA6B8] shadow-sm";
+    }
+  }
+
+  document.querySelectorAll('.profile-opt').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const grp = btn.getAttribute('data-group');
+      const val = btn.getAttribute('data-value');
+      profile[grp] = val;
+      updateProfileButtons();
+    });
+  });
+
+  ctaBtn.addEventListener('click', () => {
+    if (profile.sinif && profile.rol && profile.hedef) {
+      showScreen('e2');
+    }
+  });
+
+  // -------------------------------------------------------------
+  // E2: SCENARIO MENU LOGIC
+  // -------------------------------------------------------------
+  btnBackToProfile.addEventListener('click', () => {
+    showScreen('e1');
+  });
+
+  document.querySelectorAll('.scenario-card').forEach(card => {
+    const startScenario = () => {
+      const senId = card.getAttribute('data-scenario');
+      initScenarioRun(senId);
+    };
+    card.addEventListener('click', startScenario);
+    card.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        startScenario();
+      }
+    });
+  });
+
+  // -------------------------------------------------------------
+  // E3: CRISIS RUN & DECISION LOGIC
+  // -------------------------------------------------------------
+  let currentStepOptions = [];
+
+  function initScenarioRun(scenarioId) {
+    run.senaryoId = scenarioId;
+    run.adim = 0;
+    run.kararlar = [];
+    run.kararMetinleri = [];
+    renderCrisisStep();
+    showScreen('e3');
+  }
+
+  function renderCrisisStep() {
+    const sc = SCENARIOS[run.senaryoId];
+    const stepData = sc.steps[run.adim];
+
+    // Setup paragraph
+    crisisTextEl.textContent = sc.getSetup(profile.rol);
+
+    // Heading for this step
+    decisionHeadingEl.textContent = stepData.heading;
+
+    // Progress bar dots
+    const progressContainer = document.querySelector('[data-testid="ilerleme"]');
+    progressContainer.setAttribute('aria-valuenow', (run.adim + 1).toString());
+    progressContainer.setAttribute('aria-label', `Kriz adımı ${run.adim + 1} / 3`);
+
+    crisisDots.forEach((dot, idx) => {
+      if (idx <= run.adim) {
+        dot.className = "w-2 h-2 rounded-full bg-[#E8A33D]";
+      } else {
+        dot.className = "w-2 h-2 rounded-full border border-[#222A35] bg-transparent";
+      }
+    });
+
+    // Store options without altering DOM attributes that would hint tag
+    currentStepOptions = stepData.options;
+
+    // Render identically styled buttons
+    decisionBtns.forEach((btn, idx) => {
+      const opt = currentStepOptions[idx];
+      const labelSpan = btn.querySelector('.decision-label');
+      labelSpan.textContent = opt.text;
+    });
+  }
+
+  decisionBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      const idx = parseInt(btn.getAttribute('data-idx'), 10);
+      const chosen = currentStepOptions[idx];
+      if (!chosen) return;
+
+      run.kararlar.push(chosen.tag);
+      run.kararMetinleri.push(chosen.text);
+
+      if (run.adim < 2) {
+        run.adim += 1;
+        renderCrisisStep();
+      } else {
+        finishScenario();
+      }
+    });
+  });
+
+  btnBackToMenu.addEventListener('click', () => {
+    showScreen('e2');
+  });
+
+  // -------------------------------------------------------------
+  // E4: RESULT & SOCRATIC TUTOR LOGIC
+  // -------------------------------------------------------------
+  function finishScenario() {
+    showScreen('e4');
+
+    const sc = SCENARIOS[run.senaryoId];
+    // Ending exact rule: at least 2 of 3 "saglam"
+    const saglamCount = run.kararlar.filter(k => k === 'saglam').length;
+    const isGood = (saglamCount >= 2);
+
+    // Banner layout & colors
+    bannerCount.textContent = `${saglamCount}/3 sağlam karar`;
+
+    if (isGood) {
+      resultBanner.className = "relative overflow-hidden rounded-xl bg-[#161B22] border border-[#222A35] shadow-sm";
+      bannerAccentBg.className = "absolute inset-0 bg-[#4FB286]/10 pointer-events-none";
+      bannerBar.className = "w-1.5 h-10 rounded-full bg-[#4FB286] shrink-0";
+      bannerTitle.textContent = "İYİ SON";
+      bannerIconBox.className = "w-10 h-10 rounded-full bg-[#4FB286]/20 flex items-center justify-center shrink-0";
+      bannerIcon.className = "material-symbols-outlined text-[#4FB286] text-[22px]";
+      bannerIcon.textContent = "check";
+      resultStoryText.textContent = sc.endings.good;
+    } else {
+      resultBanner.className = "relative overflow-hidden rounded-xl bg-[#161B22] border border-[#222A35] shadow-sm";
+      bannerAccentBg.className = "absolute inset-0 bg-[#D96F63]/10 pointer-events-none";
+      bannerBar.className = "w-1.5 h-10 rounded-full bg-[#D96F63] shrink-0";
+      bannerTitle.textContent = "KÖTÜ SON";
+      bannerIconBox.className = "w-10 h-10 rounded-full bg-[#D96F63]/20 flex items-center justify-center shrink-0";
+      bannerIcon.className = "material-symbols-outlined text-[#D96F63] text-[20px]";
+      bannerIcon.textContent = "error";
+      resultStoryText.textContent = sc.endings.bad;
+    }
+
+    // Call Socratic Tutor
+    fetchSocraticTutor(sc.title, isGood);
+  }
+
+  btnNextCrisis.addEventListener('click', () => {
+    // Keeps profile, resets run
+    run.senaryoId = null;
+    run.adim = 0;
+    run.kararlar = [];
+    run.kararMetinleri = [];
+    showScreen('e2');
+  });
+
+  btnReplayCrisis.addEventListener('click', () => {
+    if (run.senaryoId) {
+      initScenarioRun(run.senaryoId);
+    }
+  });
+
+  // -------------------------------------------------------------
+  // SOCRATIC TUTOR API INTEGRATION (gemini-3.5-flash-lite)
+  // -------------------------------------------------------------
+  async function fetchSocraticTutor(senaryoAdi, isGood) {
+    // 1. Loading State: 3 skeleton bars in #222A35 with soft pulsing opacity
+    socraticContainer.innerHTML = `
+      <div class="space-y-3 py-1">
+        <div class="skeleton-bar h-3.5 bg-[#222A35] rounded-full w-11/12"></div>
+        <div class="skeleton-bar h-3.5 bg-[#222A35] rounded-full w-full"></div>
+        <div class="skeleton-bar h-3.5 bg-[#222A35] rounded-full w-3/4"></div>
+      </div>
+    `;
+
+    const promptText = `Sen bir Sokratik öğrenme rehberisin. Bir yazılım mühendisliği öğrencisi bir kriz senaryosunda kararlar verdi. Görevin ona DOĞRU CEVABI VERMEMEK, kendi muhakemesini sorgulatmaktır.
+
+Bağlam:
+- Senaryo: ${senaryoAdi}
+- Öğrencinin sınıfı: ${profile.sinif}
+- Hedef rolü: ${profile.rol}
+- Hedefi: ${profile.hedef}
+- Verdiği kararlar: ${run.kararMetinleri.map((m, i) => `${i + 1}. Karar: "${m}"`).join(", ")}
+- Varılan son: ${isGood ? "iyi" : "kotu"}
+
+Kurallar (hepsine uy):
+1. Asla doğrudan çözüm veya talimat verme. Emir kipi kullanma.
+2. 1-3 soru sor ve soru işaretiyle bitir.
+3. Öğrencinin kendi seçimine açıkça atıf yap.
+4. Öğrencinin farkında olmadığı bir varsayımı işaret et.
+5. En fazla 60 kelime.
+6. Kararı NİTELEME — ne yer ne öv. "yanlış yaptın" da deme, "doğru karar", "projeyi kurtardı", "iyi düşünmüşsün" de deme. Öğrenci kararının iyi mi kötü mü olduğunu senden öğrenmemeli.
+
+Sınıf 1-2 ise sorularını daha yönlendirici, 3-4 ise daha açık uçlu kur.
+Hedefi "staj" ise mülakat çerçevesi, "proje" ise teslim etkisi, "ogrenme" ise kavram bağlantısı üzerinden sor.
+
+Cevabını Türkçe yaz.`;
+
+    const fallbackHtml = `
+      <p class="text-[14px] leading-relaxed text-[#9AA6B8] font-normal">
+        Rehber şu an cevap veremedi. Kendine sor: bu kararı verirken neyi varsaydın?
+      </p>
+    `;
+
+    if (!geminiApiKey) {
+      // Simulate natural thinking delay before rendering required fallback
+      setTimeout(() => {
+        socraticContainer.innerHTML = fallbackHtml;
+      }, 700);
+      return;
+    }
+
+    try {
+      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash-lite:generateContent?key=${geminiApiKey}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: promptText }] }],
+          generationConfig: {
+            maxOutputTokens: 120,
+            temperature: 0.7
+          }
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error(`API status ${response.status}`);
+      }
+
+      const data = await response.json();
+      const reply = data?.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
+
+      if (!reply) {
+        throw new Error("No response text");
+      }
+
+      // 2. Loaded State
+      socraticContainer.innerHTML = `
+        <blockquote class="text-[14px] leading-relaxed text-[#E6EAF0] font-normal m-0">
+          ${escapeHtml(reply)}
+        </blockquote>
+      `;
+    } catch (err) {
+      console.warn("Tutor fallback triggered:", err.message);
+      // 3. Error State
+      socraticContainer.innerHTML = fallbackHtml;
+    }
+  }
+
+  function escapeHtml(str) {
+    return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+  }
+
+  // -------------------------------------------------------------
+  // API KEY MODAL INTERACTIONS
+  // -------------------------------------------------------------
+  btnOpenApiKey.addEventListener('click', () => {
+    apiKeyInput.value = geminiApiKey;
+    apiKeyDialog.classList.remove('hidden');
+    apiKeyDialog.classList.add('flex');
+    apiKeyInput.focus();
+  });
+
+  btnCloseApiKey.addEventListener('click', () => {
+    apiKeyDialog.classList.add('hidden');
+    apiKeyDialog.classList.remove('flex');
+  });
+
+  btnSaveApiKey.addEventListener('click', () => {
+    geminiApiKey = apiKeyInput.value.trim();
+    apiKeyDialog.classList.add('hidden');
+    apiKeyDialog.classList.remove('flex');
+  });
+
+  apiKeyDialog.addEventListener('click', (e) => {
+    if (e.target === apiKeyDialog) {
+      apiKeyDialog.classList.add('hidden');
+      apiKeyDialog.classList.remove('flex');
+    }
+  });
+
+})();
+</script>
+
+</body>
+</html>

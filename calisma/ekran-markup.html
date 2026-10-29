@@ -1,0 +1,321 @@
+
+<!-- ===== E1 Profil ===== -->
+<main class="flex flex-col flex-1 relative w-full bg-surface px-margin"><div class="flex flex-col w-full pb-6 select-none">
+<header class="flex flex-col pt-2 pb-5">
+<div class="flex items-center gap-2">
+<span class="font-headline-lg text-headline-lg font-semibold tracking-tight text-on-surface">Primer</span>
+<span class="w-2 h-2 rounded-full bg-primary-container inline-block animate-pulse"></span>
+</div>
+<p class="font-body-md text-body-md text-secondary mt-1.5 font-normal">
+      Üç soru, sonra başlıyoruz.
+    </p>
+</header>
+<div class="flex items-center gap-1.5 mb-6">
+<div class="h-1 flex-1 rounded-full bg-surface-container-highest transition-colors duration-300" id="step-dot-1"></div>
+<div class="h-1 flex-1 rounded-full bg-surface-container-highest transition-colors duration-300" id="step-dot-2"></div>
+<div class="h-1 flex-1 rounded-full bg-surface-container-highest transition-colors duration-300" id="step-dot-3"></div>
+</div>
+<div class="flex flex-col gap-5">
+<section class="flex flex-col gap-2.5">
+<span class="font-label-caps text-label-caps text-secondary uppercase tracking-wider font-semibold">
+        KAÇINCI SINIFTASIN?
+      </span>
+<div aria-label="Kaçıncı sınıftasın?" class="grid grid-cols-2 gap-3" role="radiogroup">
+<button class="q-opt min-h-[48px] h-12 px-4 rounded-xl bg-surface-container text-on-surface font-label-lg text-label-lg flex items-center justify-center transition-all duration-150 active:scale-[0.98]" data-group="q1" data-value="1-2" type="button">
+          1-2
+        </button>
+<button class="q-opt min-h-[48px] h-12 px-4 rounded-xl bg-surface-container text-on-surface font-label-lg text-label-lg flex items-center justify-center transition-all duration-150 active:scale-[0.98]" data-group="q1" data-value="3-4" type="button">
+          3-4
+        </button>
+</div>
+</section>
+<section class="flex flex-col gap-2.5">
+<span class="font-label-caps text-label-caps text-secondary uppercase tracking-wider font-semibold">
+        HANGİ ROLE YAKINSIN?
+      </span>
+<div aria-label="Hangi role yakınsın?" class="grid grid-cols-3 gap-2" role="radiogroup">
+<button class="q-opt min-h-[48px] h-12 px-2 rounded-xl bg-surface-container text-on-surface font-label-md text-label-md flex items-center justify-center text-center transition-all duration-150 active:scale-[0.98]" data-group="q2" data-value="frontend" type="button">
+          Frontend
+        </button>
+<button class="q-opt min-h-[48px] h-12 px-2 rounded-xl bg-surface-container text-on-surface font-label-md text-label-md flex items-center justify-center text-center transition-all duration-150 active:scale-[0.98]" data-group="q2" data-value="backend" type="button">
+          Backend
+        </button>
+<button class="q-opt min-h-[48px] h-12 px-1 rounded-xl bg-surface-container text-on-surface font-label-md text-label-md flex items-center justify-center text-center leading-tight transition-all duration-150 active:scale-[0.98]" data-group="q2" data-value="bilmiyorum" type="button">
+          Henüz bilmiyorum
+        </button>
+</div>
+</section>
+<section class="flex flex-col gap-2.5">
+<span class="font-label-caps text-label-caps text-secondary uppercase tracking-wider font-semibold">
+        ŞU AN SENİN İÇİN ÖNEMLİ OLAN?
+      </span>
+<div aria-label="Şu an senin için önemli olan?" class="flex flex-col gap-2" role="radiogroup">
+<button class="q-opt min-h-[48px] h-12 px-4 rounded-xl bg-surface-container text-on-surface font-label-lg text-label-lg flex items-center justify-between text-left transition-all duration-150 active:scale-[0.98]" data-group="q3" data-value="staj" type="button">
+<span>Staj bulmak</span>
+<span class="indicator-icon material-symbols-outlined text-[18px] opacity-0 text-primary-container transition-opacity">check_circle</span>
+</button>
+<button class="q-opt min-h-[48px] h-12 px-4 rounded-xl bg-surface-container text-on-surface font-label-lg text-label-lg flex items-center justify-between text-left transition-all duration-150 active:scale-[0.98]" data-group="q3" data-value="proje" type="button">
+<span>Projeyi bitirmek</span>
+<span class="indicator-icon material-symbols-outlined text-[18px] opacity-0 text-primary-container transition-opacity">check_circle</span>
+</button>
+<button class="q-opt min-h-[48px] h-12 px-4 rounded-xl bg-surface-container text-on-surface font-label-lg text-label-lg flex items-center justify-between text-left transition-all duration-150 active:scale-[0.98]" data-group="q3" data-value="ogrenmek" type="button">
+<span>Öğrenmek</span>
+<span class="indicator-icon material-symbols-outlined text-[18px] opacity-0 text-primary-container transition-opacity">check_circle</span>
+</button>
+</div>
+</section>
+</div>
+<div class="mt-8 flex flex-col items-center">
+<button class="w-full min-h-[48px] h-12 rounded-xl font-label-lg text-label-lg font-semibold flex items-center justify-center transition-all duration-200 cursor-not-allowed bg-surface-container-highest text-secondary shadow-sm" disabled="" id="cta-button" type="button">
+      Devam
+    </button>
+<p class="font-body-sm text-body-sm text-secondary mt-3 text-center tracking-normal font-normal">
+      Cevapların kaydedilmiyor.
+    </p>
+</div>
+</div>
+</main>
+
+<!-- ===== E2 Senaryo menusu ===== -->
+<main class="flex-1 flex flex-col relative w-full bg-surface"><div class="flex flex-col w-full px-5 py-4 max-w-[390px] mx-auto select-none">
+<div class="flex items-center mb-6">
+<button aria-label="Profile sayfasına dön" class="group flex items-center gap-1.5 py-2 pr-4 -ml-1 text-secondary hover:text-on-surface transition-colors duration-150 active:opacity-75 focus:outline-none" type="button">
+<span aria-hidden="true" class="material-symbols-outlined text-lg leading-none transition-transform group-active:-translate-x-0.5">arrow_back</span>
+<span class="font-body-md text-[14px] leading-5 tracking-normal">Profil</span>
+</button>
+</div>
+<header class="flex flex-col mb-7">
+<h1 class="font-headline-lg text-[28px] leading-[34px] font-semibold tracking-[-0.015em] text-[#E6EAF0] mb-2">
+      Hangi krizi yaşayalım?
+    </h1>
+<p class="font-body-md text-[14px] leading-5 text-[#9AA6B8] tracking-normal">
+      Üçünü de oynayabilirsin.
+    </p>
+</header>
+<main class="flex flex-col gap-3">
+<div class="crisis-card group relative flex flex-col p-5 rounded-[16px] bg-[#161B22] border border-[#222A35] transition-all duration-200 active:scale-[0.985] active:bg-[#1C232C] cursor-pointer outline-none focus-visible:ring-1 focus-visible:ring-[#E8A33D]" role="button" tabindex="0">
+<div class="flex flex-col mb-4">
+<h2 class="font-headline-sm text-[18px] leading-6 font-semibold tracking-[-0.005em] text-[#E6EAF0] mb-1.5">
+          Dönem projesi krizi
+        </h2>
+<p class="font-body-md text-[14px] leading-[1.4] text-[#9AA6B8] line-clamp-2">
+          Teslime 48 saat, main bozuk, biri kayıp.
+        </p>
+</div>
+<div class="flex items-center justify-between mt-auto pt-1">
+<span class="font-label-md text-[13px] leading-4 text-[#9AA6B8] tracking-normal">
+          ~3 dk
+        </span>
+<span aria-hidden="true" class="text-[#E8A33D] font-headline-sm text-[18px] leading-none transition-transform duration-200 group-hover:translate-x-0.5 group-active:translate-x-1">
+          →
+        </span>
+</div>
+</div>
+<div class="crisis-card group relative flex flex-col p-5 rounded-[16px] bg-[#161B22] border border-[#222A35] transition-all duration-200 active:scale-[0.985] active:bg-[#1C232C] cursor-pointer outline-none focus-visible:ring-1 focus-visible:ring-[#E8A33D]" role="button" tabindex="0">
+<div class="flex flex-col mb-4">
+<h2 class="font-headline-sm text-[18px] leading-6 font-semibold tracking-[-0.005em] text-[#E6EAF0] mb-1.5">
+          İlk staj task'ın
+        </h2>
+<p class="font-body-md text-[14px] leading-[1.4] text-[#9AA6B8] line-clamp-2">
+          Mentor izinde, canlı veriye dokunman gerek.
+        </p>
+</div>
+<div class="flex items-center justify-between mt-auto pt-1">
+<span class="font-label-md text-[13px] leading-4 text-[#9AA6B8] tracking-normal">
+          ~3 dk
+        </span>
+<span aria-hidden="true" class="text-[#E8A33D] font-headline-sm text-[18px] leading-none transition-transform duration-200 group-hover:translate-x-0.5 group-active:translate-x-1">
+          →
+        </span>
+</div>
+</div>
+<div class="crisis-card group relative flex flex-col p-5 rounded-[16px] bg-[#161B22] border border-[#222A35] transition-all duration-200 active:scale-[0.985] active:bg-[#1C232C] cursor-pointer outline-none focus-visible:ring-1 focus-visible:ring-[#E8A33D]" role="button" tabindex="0">
+<div class="flex flex-col mb-4">
+<h2 class="font-headline-sm text-[18px] leading-6 font-semibold tracking-[-0.005em] text-[#E6EAF0] mb-1.5">
+          Vize haftası
+        </h2>
+<p class="font-body-md text-[14px] leading-[1.4] text-[#9AA6B8] line-clamp-2">
+          Üç sınav, bir grup ödevi ve kopya şüphesi.
+        </p>
+</div>
+<div class="flex items-center justify-between mt-auto pt-1">
+<span class="font-label-md text-[13px] leading-4 text-[#9AA6B8] tracking-normal">
+          ~3 dk
+        </span>
+<span aria-hidden="true" class="text-[#E8A33D] font-headline-sm text-[18px] leading-none transition-transform duration-200 group-hover:translate-x-0.5 group-active:translate-x-1">
+          →
+        </span>
+</div>
+</div>
+</main>
+</div>
+</main>
+
+<!-- ===== E3-b Kriz ve karar (backend) ===== -->
+<main class="flex-1 flex flex-col relative w-full bg-surface"><div class="flex flex-col w-full max-w-[390px] mx-auto px-5 pb-8 select-none">
+<header class="flex items-center justify-between pt-3 pb-6">
+<button aria-label="Menüye geri dön" class="group flex items-center gap-1.5 py-2 text-secondary hover:text-on-surface transition-colors focus:outline-none" type="button">
+<span class="font-body-md text-body-md tracking-normal text-secondary group-hover:text-on-surface">← Menü</span>
+</button>
+<div aria-label="Kriz adımı 2 / 3" aria-valuemax="3" aria-valuemin="1" aria-valuenow="2" class="flex items-center gap-1.5" role="progressbar"><span class="w-2 h-2 rounded-full bg-[#E8A33D]"></span>
+<span class="w-2 h-2 rounded-full bg-[#E8A33D]"></span>
+<span class="w-2 h-2 rounded-full border border-[#222A35] bg-transparent"></span></div>
+</header>
+<section class="relative bg-[#161B22] rounded-[16px] border border-[#222A35] overflow-hidden shadow-lg mb-7 flex">
+<div class="w-[3px] bg-[#E8A33D] shrink-0 self-stretch"></div>
+<div class="p-4 flex-1">
+<p class="font-body-lg text-[16px] leading-relaxed text-[#E6EAF0]">Teslime 48 saat kaldı. Son migration veritabanını kilitledi, kimse projeyi local'de açamıyor. Hoca canlı demo bekliyor.</p>
+</div>
+</section>
+<h1 class="font-headline-lg text-headline-lg text-on-surface tracking-tight mb-4">
+    Ne yapıyorsun?
+  </h1>
+<div aria-label="Karar seçenekleri" class="flex flex-col gap-3 mb-6" role="radiogroup"><button class="decision-option text-left w-full bg-[#161B22] border border-[#222A35] active:bg-[#222A35] rounded-xl p-4 min-h-[48px] flex items-center transition-all duration-150" onclick="selectDecision(this)" type="button">
+<span class="font-medium text-[15px] leading-snug text-[#E6EAF0]">Son çalışan commit'e dön, kaybolan işi sonra ekle</span>
+</button>
+<button class="decision-option text-left w-full bg-[#161B22] border border-[#222A35] active:bg-[#222A35] rounded-xl p-4 min-h-[48px] flex items-center transition-all duration-150" onclick="selectDecision(this)" type="button">
+<span class="font-medium text-[15px] leading-snug text-[#E6EAF0]">Gece boyu hatayı debug et, çözene kadar uğraş</span>
+</button>
+<button class="decision-option text-left w-full bg-[#161B22] border border-[#222A35] active:bg-[#222A35] rounded-xl p-4 min-h-[48px] flex items-center transition-all duration-150" onclick="selectDecision(this)" type="button">
+<span class="font-medium text-[15px] leading-snug text-[#E6EAF0]">Kendi branch'inde minimal çalışan bir sürüm kur</span>
+</button></div>
+<footer class="mt-auto pt-2 flex items-center justify-center gap-1.5"><p class="text-[12px] text-[#9AA6B8] text-center">Seçtikten sonra geri dönemezsin.</p></footer>
+</div>
+</main>
+
+<!-- ===== E3-c Kriz ve karar (frontend) ===== -->
+<main class="flex-1 flex flex-col relative w-full bg-surface"><div class="flex flex-col w-full px-margin pb-space-2xl">
+<div class="w-full flex items-center justify-between pt-space-md pb-space-xl">
+<button class="text-left font-body-md text-body-md text-[#9AA6B8] hover:text-[#E6EAF0] transition-colors focus:outline-none focus:text-[#E8A33D] py-space-xs" type="button">
+      ← Menü
+    </button>
+<div aria-label="Adım 2 / 3" class="flex items-center gap-[6px]">
+<span class="w-[8px] h-[8px] rounded-full bg-primary-container inline-block"></span>
+<span class="w-[8px] h-[8px] rounded-full bg-primary-container inline-block"></span>
+<span class="w-[8px] h-[8px] rounded-full border-[1.5px] border-[#222A35] bg-transparent inline-block"></span>
+</div>
+</div>
+<section class="relative w-full rounded-2xl bg-[#161B22] border border-[#222A35] py-[18px] px-4 overflow-hidden">
+<div class="absolute left-0 top-0 bottom-0 w-[3px] bg-primary-container"></div>
+<p class="font-body-lg text-[15px] leading-[1.5] font-normal text-[#E6EAF0] m-0 pl-1">
+      Teslime 48 saat kaldı. Build pipeline kırıldı, npm run build hata veriyor, kimse projeyi derleyemiyor. Hoca canlı demo bekliyor.
+    </p>
+</section>
+<h1 class="font-headline-lg text-headline-lg font-semibold text-[#E6EAF0] mt-[28px] mb-4">
+    Ne yapıyorsun?
+  </h1>
+<fieldset class="w-full m-0 p-0 border-0 flex flex-col gap-3">
+<legend class="sr-only">Karar seçenekleri</legend>
+<button class="decision-btn w-full min-h-[52px] p-4 rounded-xl bg-[#161B22] border border-[#222A35] text-left transition-all duration-150 active:scale-[0.99] focus:outline-none focus:border-primary-container" data-option="1" onclick="handleSelect(this)" type="button">
+<span class="font-body-lg text-[15px] leading-snug font-normal text-[#E6EAF0] block pointer-events-none">
+        Son çalışan commit'e dön, kaybolan işi sonra ekle
+      </span>
+</button>
+<button class="decision-btn w-full min-h-[52px] p-4 rounded-xl bg-[#161B22] border border-[#222A35] text-left transition-all duration-150 active:scale-[0.99] focus:outline-none focus:border-primary-container" data-option="2" onclick="handleSelect(this)" type="button">
+<span class="font-body-lg text-[15px] leading-snug font-normal text-[#E6EAF0] block pointer-events-none">
+        Gece boyu hatayı debug et, çözene kadar uğraş
+      </span>
+</button>
+<button class="decision-btn w-full min-h-[52px] p-4 rounded-xl bg-[#161B22] border border-[#222A35] text-left transition-all duration-150 active:scale-[0.99] focus:outline-none focus:border-primary-container" data-option="3" onclick="handleSelect(this)" type="button">
+<span class="font-body-lg text-[15px] leading-snug font-normal text-[#E6EAF0] block pointer-events-none">
+        Kendi branch'inde minimal çalışan bir sürüm kur
+      </span>
+</button>
+</fieldset>
+<div class="mt-space-xl pt-2">
+<p class="font-body-sm text-body-sm text-[#9AA6B8] opacity-80 select-none">
+      Seçtikten sonra geri dönemezsin.
+    </p>
+</div>
+</div>
+</main>
+
+<!-- ===== E4-iyi Sonuc ===== -->
+<main class="flex-1 flex flex-col relative w-full bg-surface pt-safe pb-safe"><div class="flex flex-col w-full px-margin pb-safe space-y-space-xl">
+<section class="relative overflow-hidden rounded-xl bg-surface-container-lowest shadow-sm">
+<div class="absolute inset-0 bg-[#4FB286]/10 pointer-events-none"></div>
+<div class="relative flex items-center justify-between p-space-lg">
+<div class="flex items-center space-x-space-md">
+<div class="w-1.5 h-10 rounded-full bg-[#4FB286] shrink-0"></div>
+<div class="flex flex-col">
+<div class="flex items-center space-x-space-xs">
+<span class="font-headline-md text-headline-md text-on-surface font-semibold tracking-tight">İYİ SON</span>
+</div>
+<span class="font-body-sm text-body-sm text-on-surface-variant mt-0.5">2/3 sağlam karar</span>
+</div>
+</div>
+<div class="w-10 h-10 rounded-full bg-[#4FB286]/20 flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-[#4FB286] text-[22px]" style="font-variation-settings: 'FILL' 1;">check</span>
+</div>
+</div>
+</section>
+<section class="px-space-2xs">
+<p class="font-body-lg text-body-lg text-on-surface leading-relaxed font-normal">
+      Proje teslim edildi. Hoca eksikleri biliyordu, demo canlıda çalıştı.
+    </p>
+</section>
+<section class="bg-surface-container rounded-xl p-space-xl relative shadow-md">
+<div class="flex flex-col space-y-space-sm">
+<div class="w-8 h-8 flex items-center justify-start text-primary">
+<svg class="w-7 h-7 fill-current" viewBox="0 0 24 24">
+<path d="M9.983 3v7.391c0 5.704-3.731 9.57-8.983 10.609l-.995-2.151c2.432-.917 3.995-3.638 3.995-5.849h-4v-10h9.983zm14.017 0v7.391c0 5.704-3.748 9.571-9 10.609l-.996-2.151c2.433-.917 3.996-3.638 3.996-5.849h-3.983v-10h9.983z"></path>
+</svg>
+</div>
+<blockquote class="font-body-md text-body-md text-on-surface leading-relaxed pt-space-2xs font-normal">
+        Son çalışan commit'e dönmeyi seçtin. O commit'in gerçekten çalıştığını nereden biliyordun? Kaybolan iş kimin işiydi?
+      </blockquote>
+</div>
+</section>
+<footer class="flex flex-col items-center space-y-space-md pt-space-lg w-full">
+<button class="w-full min-h-[50px] bg-primary text-on-primary font-label-lg text-label-lg rounded-xl flex items-center justify-center space-x-space-xs active:scale-[0.98] transition-transform select-none shadow-sm" id="btn-next-crisis" type="button">
+<span class="">Başka bir kriz dene</span>
+<span class="material-symbols-outlined text-[20px]">arrow_forward</span>
+</button>
+<button class="min-h-[48px] px-space-md text-primary font-label-lg text-label-lg flex items-center justify-center space-x-1.5 active:opacity-75 transition-opacity select-none" id="btn-replay-crisis" type="button">
+<span class="material-symbols-outlined text-[18px]">replay</span>
+<span class="">Aynı krizi tekrar oyna</span>
+</button>
+</footer>
+</div>
+</main>
+
+<!-- ===== E4-kotu Sonuc ===== -->
+<main class="flex-1 flex flex-col relative w-full bg-surface pt-safe pb-safe"><div class="flex flex-col w-full px-5 py-6 space-y-6">
+<div class="relative overflow-hidden rounded-xl bg-error-container/20 p-5 shadow-sm">
+<div class="absolute left-0 top-0 bottom-0 w-1 bg-error"></div>
+<div class="flex items-start justify-between">
+<div class="space-y-1 pl-1">
+<div class="flex items-center space-x-2">
+<h2 class="font-headline-md text-headline-md text-on-surface">KÖTÜ SON</h2>
+<span class="material-symbols-outlined text-error text-[20px]" style="font-variation-settings: 'FILL' 1;">error</span>
+</div>
+<p class="font-body-md text-body-md text-on-secondary-container">1/3 sağlam karar</p>
+</div>
+</div>
+</div>
+<div class="px-1">
+<p class="font-body-lg text-body-lg text-on-surface leading-relaxed">
+      Demo sunumda çöktü. Hoca projeyi değil, hazırlıksızlığı gördü. Takım arkadaşın hiç ortaya çıkmadı.
+    </p>
+</div>
+<div class="relative rounded-2xl bg-surface-container-low p-6 shadow-md">
+<div aria-hidden="true" class="text-primary-container leading-none select-none mb-3">
+<svg class="w-8 h-8 fill-current text-primary-container" viewbox="0 0 24 24">
+<path d="M14.017 21v-7.391c0-5.704 3.731-9.57 8.983-10.609l.995 2.151c-2.432.917-3.995 3.638-3.995 5.849h4v10h-9.983zm-14.017 0v-7.391c0-5.704 3.748-9.57 9-10.609l.996 2.151c-2.433.917-3.996 3.638-3.996 5.849h3.983v10h-9.983z"></path>
+</svg>
+</div>
+<p class="font-body-lg text-body-lg text-on-surface leading-relaxed">
+      Gece boyu debug etmeyi seçtin. O saatlerin sonunda elinde ne vardı? Teslime kalan süreyi kim takip ediyordu?
+    </p>
+</div>
+<div class="pt-4 flex flex-col space-y-3">
+<button class="w-full h-12 rounded-xl bg-primary-container text-on-primary-container font-label-lg text-label-lg flex items-center justify-center space-x-2 active:scale-[0.98] transition-transform" type="button">
+<span>Başka bir kriz dene</span>
+<span class="material-symbols-outlined text-[20px]">arrow_forward</span>
+</button>
+<button class="w-full min-h-[44px] flex items-center justify-center space-x-1.5 text-primary-container font-label-lg text-label-lg active:opacity-75 transition-opacity" type="button">
+<span class="material-symbols-outlined text-[18px]">replay</span>
+<span>Aynı krizi tekrar oyna</span>
+</button>
+</div>
+</div></main>

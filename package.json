@@ -1,0 +1,13 @@
+{
+  "name": "primer",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Primer — yazılım mühendisliği öğrencileri için Sokratik kriz simülasyonu. E2E testleri.",
+  "scripts": {
+    "test": "cypress run",
+    "test:open": "cypress open"
+  },
+  "devDependencies": {
+    "cypress": "^16.2.1"
+  }
+}
