@@ -28,7 +28,13 @@
 
 ## Ürün kararları — yapmadığım üç özellik
 
-Bunlar zaman yetmediği için değil, **ürünün amacına ters düştüğü veya hiçbir şey eklemediği için** yapılmadı.
+| # | Yapmadığım özellik | Tek cümlelik gerekçe |
+|---|---|---|
+| 1 | Gerçek hesap sistemi (parola, oturum, kimlik doğrulama) | Simülasyonun değeri tek oturumda ortaya çıkıyor; kimlik doğrulamak öğrenmeye hiçbir şey katmazken altyapı maliyetini ve gizlilik yükünü getiriyor. |
+| 2 | Sınıf arkadaşıyla skor karşılaştırma | Yarışma, Sokratik sorgulamanın yerini "doğru cevabı bulma" refleksine bıraktırır — ki bu, ürünün çözmeye çalıştığı problemin ta kendisidir. |
+| 3 | Senaryo editörü | Üç sabit senaryo on kabul örneğinin tamamını karşılıyor; kimse başka senaryo yazmak istemeden yazma aracı yapmak, çözülmemiş bir problemi çözmektir. |
+
+Üçü de zaman yetmediği için değil, **ürünün amacına ters düştüğü veya hiçbir şey eklemediği için** yapılmadı. Ayrıntılı gerekçeler aşağıda.
 
 ### 1. Gerçek hesap sistemi (parola, oturum, kimlik doğrulama)
 
