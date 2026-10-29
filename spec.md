@@ -442,10 +442,11 @@ Bu ayrım kayda geçirildi çünkü dışarıdan bakıldığında ikisi aynı g�
 
 ### Henüz doğrulanmadı
 
-1. AI Studio linki QR kod ile telefonda sorunsuz açılıyor.
-2. 3-5 dakikalık oturum süresi, test edecek arkadaşın ilgisini koruyor.
-3. Güçlendirilmiş kural 6'nın övgüyü gerçekten engellediği — 20 oturumluk eval'de ölçülecek.
-4. Vekil uç noktasının kota sınırı — 20'den fazla oturumda tükenip tükenmediği bilinmiyor.
+1. Güçlendirilmiş kural 6'nın övgüyü gerçekten engellediği — 20 oturukluk eval'de iki vaka sızdı (§6.3 E etiketi), üçüncü bir sertleştirme turu ölçülmedi.
+2. Vekil uç noktasının kota sınırı — 20'den fazla oturumda tükenip tükenmediği bilinmiyor.
+3. Sohbetin Sokratik kural uyumu — `TUTOR-EVAL.md` simülasyonun sonuç ekranını ölçüyor; sohbet v2'de eklendiği için o ölçümün dışında kaldı.
+
+**Doğrulandı (2026-10-29):** Uygulama gerçek bir telefonda baştan sona oynandı; akış, metin yerleşimi ve Sokratik cevap süresi sorunsuz. Ayrıca gerçek bir öğrenciye oynatıldı — bulgusu **AC10**'a dönüştü (bkz. `TUTOR-EVAL.md` §4.4).
 
 ---
 
@@ -454,7 +455,7 @@ Bu ayrım kayda geçirildi çünkü dışarıdan bakıldığında ikisi aynı g�
 - [x] `spec.md` — bu dosya
 - [x] `DESIGN.md` + Stitch ekran tasarımları — 7 ekran üretildi, üretim notları §9'da
 - [x] AI Studio'da çalışan uygulama — <https://primer-1.ai.studio/>
-- [ ] QR ile telefon testi
+- [x] Telefon testi — gerçek cihazda baştan sona oynandı, akış sorunsuz (2026-10-29)
 - [x] Tutor Eval raporu — [`TUTOR-EVAL.md`](./TUTOR-EVAL.md) · kural uyumu %85, 20 oturum
 - [x] Cypress test takımı — [`cypress/e2e/primer.cy.js`](./cypress/e2e/primer.cy.js) · 13 test, 10 kabul örneğini karşılıyor
 - [x] Cypress koşumu — **13/13 geçti**, 23 sn, Cypress 16.2.1, yayındaki uygulamaya karşı (2026-10-29)
