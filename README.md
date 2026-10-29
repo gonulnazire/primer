@@ -18,7 +18,7 @@
 | Tasarım — Stitch ekranları + DESIGN.md | 15 | [`DESIGN.md`](./DESIGN.md) · §4 ekranlar · §9 üretim notları · `stitch_*/` **7 ekran** |
 | Çalışan uygulama — telefonda baştan sona | 20 | <https://primer-1.ai.studio/> |
 | Tutor eval — 20 cevap, hata türleri, oran, örnek | 25 | [`TUTOR-EVAL.md`](./TUTOR-EVAL.md) · **%85 kural uyumu** |
-| Cypress — tüm yollar E2E + demo video | 10 | [`cypress/e2e/primer.cy.js`](./cypress/e2e/primer.cy.js) · **13/13 geçiyor** |
+| Cypress — tüm yollar E2E + demo video | 10 | [`cypress/e2e/primer.cy.js`](./cypress/e2e/primer.cy.js) · **20/20 geçiyor** (13 simülasyon + 7 sohbet) |
 | Ürün kararı — 3 özellik + tek cümle neden | 10 | [Aşağıdaki tablo](#ürün-kararları--yapmadığım-üç-özellik) |
 
 ---
@@ -125,7 +125,7 @@ Bu süs değil gereklilik çıktı: değerlendirme sırasında uç noktanın hı
 | Sokratik kural uyumu | **%85** (17/20 oturum) — eşik %80 |
 | Cevap sızdırma (en kritik hata) | **%0** — 20/20 |
 | Kişiselleştirme | Profilin üç boyutu da modelin çerçevesini değiştiriyor |
-| Uçtan uca test | **13/13 geçiyor**, 10 kabul örneğini karşılıyor |
+| Uçtan uca test | **20/20 geçiyor** (13 simülasyon + 7 sohbet), 10 kabul örneğini karşılıyor |
 
 Ayrıntı: [`TUTOR-EVAL.md`](./TUTOR-EVAL.md)
 
@@ -163,5 +163,6 @@ Koşum videoları `cypress/videos/` altında oluşur.
 - **Sokratik uç noktası hız sınırlı.** Art arda hızlı oturumlarda model cevap veremeyebilir; uygulama bu durumda yedek soruyu gösterir. Beklenen davranıştır, hata değil.
 - **S6 (kararı nitelememe) en zayıf kural.** 20 oturumun ikisinde model kararı yüklü sıfatlarla çerçeveledi. Prompt bir kez sertleştirildi; ikinci bir tur sertleştirme mümkün.
 - **Sohbetteki e-posta doğrulanmıyor.** Girilen adres bir kimlik değil etiket; kimse kendini doğrulamıyor ve herkes aynı sunucu kotasını kullanıyor. Farklı e-postalar farklı cevap üretiyorsa bunun nedeni farklı hesaplar değil, her e-postanın kendi sohbet geçmişi olması.
+- **E-posta hatalarında kullanıcı iki farklı uyarı görebilir.** Alan `<input type="email">` olduğu için çoğu yazım hatasında tarayıcının kendi doğrulaması devreye giriyor ve kullanıcı **tarayıcının dilinde** bir balon görüyor; uygulamanın Türkçe uyarısı yalnızca HTML5'e göre geçerli ama uygulamanın kuralına uymayan adreslerde (örn. nokta içermeyen alan adı) çıkıyor. Testlerle doğrulandı, düzeltilmedi — tutarlı Türkçe uyarı için native doğrulamayı kapatmak gerekirdi ki bu da erişilebilirlik açısından bedelli.
 - **Sohbetin Sokratik kuralları ölçülmedi.** `TUTOR-EVAL.md`'deki 20 oturumluk değerlendirme simülasyonun sonuç ekranını ölçüyor; sohbet v2'de eklendiği için o ölçümün dışında kaldı.
 - **Tek tema.** Açık tema ve tema değiştirici kapsam dışı bırakıldı.

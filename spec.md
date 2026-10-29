@@ -391,6 +391,22 @@ LLM çağrısı testlerde `cy.intercept` ile sabit bir yanıta bağlanır. Böyl
 
 Testler **yayındaki uygulamaya** karşı koşar (`baseUrl: https://primer-1.ai.studio`), yerel kopyaya değil — değerlendirilen ve kullanıcının gördüğü sürüm odur.
 
+### Sohbet testleri (v2)
+
+Serbest sohbet, ilk spec'te *"deterministik test edilemez"* gerekçesiyle kapsam dışıydı. Gerekçe hatalıydı: test edilmesi gereken şey modelin metni değil, uygulamanın sözleşmesi — Sokratik blok için zaten bu ayrımı yapmıştık. [`cypress/e2e/sohbet.cy.js`](./cypress/e2e/sohbet.cy.js) yedi testle şunları doğruluyor:
+
+| Test | Doğruladığı |
+|---|---|
+| HTML5 doğrulaması | `@` içermeyen adres gönderilemiyor, hiçbir şey saklanmıyor |
+| Uygulama doğrulaması | Nokta içermeyen adres Türkçe uyarı veriyor |
+| E-posta normalizasyonu | Boşluklar kırpılıp küçük harfe çevriliyor |
+| İstek sözleşmesi | `POST /api/chat` gövdesinde `email`, `message`, `history` |
+| Saklama | Geçmiş `primer_chat_<eposta>` anahtarıyla ayrışıyor |
+| Boş mesaj | Gönder butonu pasif |
+| Sıfırlama | "Sohbeti sıfırla" saklanan e-postayı siliyor |
+
+**İki doğrulama katmanı bulundu.** Alan `<input type="email">` olduğu için tarayıcının HTML5 doğrulaması uygulamanınkinden önce çalışıyor; çoğu yazım hatasında kullanıcı tarayıcının kendi dilindeki balonunu görüyor, uygulamanın Türkçe uyarısını değil. İkisi ayrı ayrı test edildi, davranış belgelendi ama düzeltilmedi — tutarlı Türkçe uyarı için native doğrulamayı kapatmak gerekirdi ki bunun erişilebilirlik bedeli var.
+
 ### İnsan testi
 Gerçek bir öğrenci arkadaşa, müdahale edilmeden oynatılır. **İlk takıldığı yer, bu spec'teki görünmez bir varsayımdır** ve yeni bir kabul örneğine dönüştürülür. Gözlem notları ve eklenen kabul örneği rapora yazılır.
 
@@ -457,9 +473,9 @@ Bu ayrım kayda geçirildi çünkü dışarıdan bakıldığında ikisi aynı g�
 - [x] AI Studio'da çalışan uygulama — <https://primer-1.ai.studio/>
 - [x] Telefon testi — gerçek cihazda baştan sona oynandı, akış sorunsuz (2026-10-29)
 - [x] Tutor Eval raporu — [`TUTOR-EVAL.md`](./TUTOR-EVAL.md) · kural uyumu %85, 20 oturum
-- [x] Cypress test takımı — [`cypress/e2e/primer.cy.js`](./cypress/e2e/primer.cy.js) · 13 test, 10 kabul örneğini karşılıyor
-- [x] Cypress koşumu — **13/13 geçti**, 23 sn, Cypress 16.2.1, yayındaki uygulamaya karşı (2026-10-29)
+- [x] Cypress test takımı — [`cypress/e2e/primer.cy.js`](./cypress/e2e/primer.cy.js) · 20 test: 13'ü 10 kabul örneğini, 7'si sohbet sözleşmesini doğruluyor
+- [x] Cypress koşumu — **20/20 geçti** (13 simülasyon + 7 sohbet), 22 sn, Cypress 16.2.1, yayındaki uygulamaya karşı (2026-10-29)
 - [ ] 60 saniyelik demo video
 - [x] `README.md` — 3 ürün kararı + fikir değişikliği anlatısı (serbest sohbet)
 - [x] Arkadaş testi geri bildirim notu — [`TUTOR-EVAL.md`](./TUTOR-EVAL.md) §4.4, bulgu **AC10**'a dönüştürüldü
-- [ ] Sohbet için uçtan uca test (v2 ile eklendi, henüz kapsam dışı)
+- [x] Sohbet için uçtan uca test — [`cypress/e2e/sohbet.cy.js`](./cypress/e2e/sohbet.cy.js) · 7 test

@@ -28,7 +28,7 @@ The application was built in Google AI Studio and is deployed at **<https://prim
 
 ```bash
 npm install            # Cypress 16.x, ~10 min on first run (large binary)
-npx cypress run        # all 13 tests, ~25s, records cypress/videos/
+npx cypress run        # all 20 tests (2 specs), ~25s, records cypress/videos/
 npx cypress open       # interactive runner
 ```
 
