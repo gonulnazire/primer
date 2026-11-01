@@ -8,18 +8,45 @@ A university assignment deliverable, not a conventional application repo. The gr
 
 | Artifact | Role |
 |---|---|
-| `spec.md` | **Source of truth.** Problem, scope, architecture, the three scenarios verbatim, 10 acceptance criteria, the six Socratic rules, the eval protocol |
+| `spec.md` | **Source of truth.** Problem, scope, architecture, the three scenarios verbatim, **13 acceptance criteria**, the six Socratic rules, the eval protocol, **§10 model requirement** |
 | `DESIGN.md` | Design tokens, four screens, Stitch prompts, production notes (§9) |
 | `TUTOR-EVAL.md` | 20-session evaluation of the live tutor |
 | `README.md` | Product decisions |
 | `cypress/` | End-to-end tests |
 | `calisma/` | Working files, **not delivered** |
+| **`DEVAM.md`** | **Read this first.** Current state, what is pending, exact resume commands |
+
+## v2 (assignment 2): the model layer
+
+A second assignment (due 2026-11-06) added a small vertical model on top of v1. `DEVAM.md` holds live state; this section holds the parts that do not change.
+
+| Artifact | Role |
+|---|---|
+| `sozlesme.py` | **Single source of truth** for column names, feature order, label rule, thresholds. `data/veri_derle.py`, `train.py` and `tests/parite.py` all import it — three copies of one threshold is how train/serve skew starts |
+| `train.py` | One command, seed 42, grouped CV, **eval gate**, ONNX export |
+| `data/` | `SOZLUK.md` (data dictionary), `veri_derle.py` (merge + validate), `ham/` (raw downloads), `oturumlar.csv` (derived, regenerated) |
+| `model/` | `model.onnx` (553 B) · `config.json` (the contract) · `README.md` (model card) |
+| `web/` | `index.html` — the v2 app · `site.json` — deployment config |
+| `tests/parite.py` + `parite.json` | Test oracle for the differential test |
+| `RELEASE.md` | Trade-off matrix, shadow/canary/rollback |
+| `SINAV_TASARIMI.md` | Exam-design thought exercise |
 
 Working language is **Turkish** for prose; code identifiers and the AI Studio build prompt are English.
 
-## The app source is not in this repo
+## Two apps, two origins
 
-The application was built in Google AI Studio and is deployed at **<https://primer-1.ai.studio/>**. There is no buildable app source here.
+| App | Where | Source in repo? | Carries |
+|---|---|---|---|
+| **v1** | <https://primer-1.ai.studio/> (AI Studio) | **no** | Live Socratic feedback via same-origin proxy |
+| **v2** | <https://gonulnazire.github.io/primer/web/> (GitHub Pages) | **yes** — `web/index.html` | The model layer (`onnxruntime-web`), data collection |
+
+The split is forced by a measured constraint, not preference: `OPTIONS https://primer-1.ai.studio/api/socratic` returns **no `Access-Control-Allow-Origin`**, so a page on any other origin cannot call the Socratic endpoint. v2 therefore shows the fixed fallback question and says so on screen. Full reasoning: `RELEASE.md` §2.
+
+Do not "fix" this by making v2 call the v1 endpoint — it cannot work from the browser.
+
+## The v1 app source is not in this repo
+
+The v1 application was built in Google AI Studio and is deployed at **<https://primer-1.ai.studio/>**. There is no buildable v1 app source here.
 
 - `uygulama/ai_studio_code.html` is an **early single-file export that diverges from production**. Production is a Vite bundle whose Socratic call goes to a same-origin server proxy; the export calls Gemini directly from the client. Do not treat the export as authoritative, and do not "fix" production by editing it.
 - Changes to the app are made by prompting AI Studio and redeploying. `calisma/AI-STUDIO-PROMPT.md` holds the full build prompt; `calisma/ekran-markup.html` holds the reference screen markup extracted from the Stitch exports.
@@ -28,22 +55,35 @@ The application was built in Google AI Studio and is deployed at **<https://prim
 
 ```bash
 npm install            # Cypress 16.x, ~10 min on first run (large binary)
-npx cypress run        # all 20 tests (2 specs), ~25s, records cypress/videos/
+npx cypress run        # all 34 tests (4 specs), ~60s, records cypress/videos/
 npx cypress open       # interactive runner
+
+# v2 model side (Python 3.14 venv already set up as .venv)
+.venv/Scripts/python.exe data/veri_derle.py --sentetik 20   # merge + validate data
+.venv/Scripts/python.exe train.py                           # train, eval gate, export ONNX
+.venv/Scripts/python.exe train.py --esik 0.99               # prove the gate blocks (exit 2)
+.venv/Scripts/python.exe tests/parite.py                    # oracle self-check
+.venv/Scripts/python.exe tests/parite.py --yaz              # refresh after retraining
+npm run v2                                                  # local static server :4173
 ```
 
 Cypress has no built-in test filter here. To run a single test, temporarily change `it(` to `it.only(` in `cypress/e2e/primer.cy.js`.
 
+**Never run `cypress run --spec <subset>` when you care about the videos.** Cypress empties `videosFolder` before every run, so a subset run deletes the committed videos of the specs it did not run. Recover with `git checkout -- cypress/videos/`. (`trashAssetsBeforeRuns: false` was tried and reverted — it writes `name (1).mp4` copies instead of overwriting, so the tracked videos go stale.)
+
+v2 specs target `Cypress.expose('v2Url')`, not `baseUrl`. Cypress 16 removed `Cypress.env()`; config key is `expose`, CLI flag is `-x`.
+
 Tests run against the **production URL** (`baseUrl` in `cypress.config.js`), not a local server — production is what is graded. They stub `POST /api/socratic` via `cy.intercept`, both because assertions must check the app's contract rather than the model's wording, and because the live endpoint is rate limited.
 
-## Architecture: the two-layer tutor
+## Architecture: three layers
 
-The app deliberately splits into two layers, and most invariants follow from this split:
+The app deliberately splits into layers, and most invariants follow from this split:
 
 | Layer | Implementation | Why |
 |---|---|---|
 | Branching — scenarios, options, endings | Hard-coded decision tree | Tests must see the same result every run |
-| Socratic feedback | Live model call via the proxy | The eval needs real model behaviour to measure |
+| Socratic feedback | Live model call via the proxy (**v1 only**) | The eval needs real model behaviour to measure |
+| **Adaptation (v2)** | Our own logistic regression, ONNX in the browser | Learning from behaviour must be a measurable, versionable, revertable artifact |
 
 The proxy contract is `POST /api/socratic` with `{prompt}` returning `{text, fallback}`. When `fallback` is true or `text` is empty, the UI shows a fixed fallback question. That fallback is required, not cosmetic: the endpoint is rate limited and drops responses under rapid successive calls (measured in `TUTOR-EVAL.md` §4.3).
 
@@ -73,6 +113,28 @@ The 20-combination eval runner is a throwaway script kept in the session scratch
 
 `gemini-3.5-flash-lite`, chosen by measurement rather than preference: `gemini-3.8-flash` spent ~821 thinking tokens on a ~90-token answer and took 75–142 s, while the lite model answers in ~5.6 s with zero thinking tokens and equal rule compliance. `gemini-2.5-flash` returns 404 for new keys. Rationale is recorded in `spec.md` §9.
 
-## Not a git repository
+## v2 invariants
 
-There is no `.git` here. If version control is wanted, initialise it rather than assuming history exists.
+These span files the same way the v1 ones do; breaking one makes the deliverables contradict each other.
+
+**The model may say *when to pause*, never *what to choose*.** Its only action is the reflection pause, and that pause must not name, highlight or reorder any option. This follows directly from the product's single claim (`spec.md` §1, §6.1 S1) — a model that could hint would destroy it. Stated in `spec.md` §10.2, enforced by AC13 in `cypress/e2e/v2-akis.cy.js` (the pause text must not contain any option's text), and repeated in `model/README.md` §2.
+
+**Feature order is the contract.** `sozlesme.py` → `OZELLIKLER`, `model/config.json` → `girdi.ozellikler`, `tests/parite.json` → `ozellikler`, and the `OZELLIKLER` array in `web/index.html` must all match, in order. A parity test still passes if they drift together — it would just be answering a different question. `cypress/e2e/parite.cy.js` checks two of these against each other.
+
+**Two thresholds, never conflated.** Eval gate **0.70** (grouped out-of-fold ROC-AUC, decides whether the model may be published) vs action threshold **0.60** (probability, decides whether the app intervenes). `spec.md` §10.5.
+
+**The eval gate is not negotiable after the fact.** The threshold was written before any data existed. If a retrain falls below it, collect more data — do not lower the gate. Reporting an honest failure scores better than a quiet adjustment (the assignment says so explicitly).
+
+**The label rule is frozen.** `refleks = okuma_orani < 0.4`, defined in `sozlesme.py` and `spec.md` §10.4 before collection. Changing it after seeing data means fitting the label to the model.
+
+**v1 spec files stay byte-identical.** `cypress/e2e/primer.cy.js` and `sohbet.cy.js` must not be edited — the regression evidence is worth more than the ~30 duplicated helper lines in `v2-akis.cy.js`.
+
+**Retraining invalidates `tests/parite.json`.** It records the model's sha256; `tests/parite.py` stops if they disagree. Always run `tests/parite.py --yaz` after `train.py` changes the model.
+
+**Deployment state lives only in `web/site.json`.** Shadow / canary / progressive / rollback are all one number in that file, which is what makes every step a revertable commit (`RELEASE.md` §4). Tests control it with `cy.intercept`, so there is **no test backdoor in the app**.
+
+## Git
+
+This **is** a git repository: `main`, remote `origin` → <https://github.com/gonulnazire/primer>, pushed. (An earlier version of this file said otherwise; that is no longer true.)
+
+The repo deliberately commits `cypress/videos/*.mp4` as delivery evidence, and `the_primer_v2_assignment.md` is deliberately gitignored.
