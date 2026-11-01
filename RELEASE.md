@@ -136,7 +136,7 @@ Hafiften ağıra, hepsi tek commit:
 |---|---|---|
 | Hugging Face hesabı + write token | **bekliyor** — hesap açılacak | kullanıcı |
 | `model_url` / `model_pin` doldurulması | HF yayınından sonra | yayın betiği |
-| GitHub Pages'in açılması (`main` / kök) | bekliyor | kullanıcı |
+| GitHub Pages'in açılması (`main` / kök) | **tamam** — <https://gonulnazire.github.io/primer/web/> · model yayında yükleniyor, gölge modunda ölçüyor | — |
 | En az 15 gerçek oturum (3 kişi × 5) | bekliyor — veri toplama modu hazır | kullanıcı |
 | Gerçek veriyle yeniden eğitim ve model kartının 3. bölümü | veri geldikten sonra | `veri_derle.py` + `train.py` |
 | 60–90 sn demo video | bekliyor | kullanıcı |

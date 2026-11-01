@@ -10,7 +10,7 @@ v1 öğrenciye kriz senaryolarında karar verdirip kendi varsayımını sorgulat
 |---|---|---|
 | 1 | **Repo** | <https://github.com/gonulnazire/primer> |
 | 2 | **Hugging Face modeli (commit'li)** | _HF hesabı açılınca doldurulacak — `web/site.json` → `model_url`_ |
-| 3 | **Canlı uygulama (v2, GitHub Pages)** | _Pages açılınca: `https://gonulnazire.github.io/primer/web/`_ |
+| 3 | **Canlı uygulama (v2, GitHub Pages)** | <https://gonulnazire.github.io/primer/web/> |
 | 4 | **60–90 sn demo video (v2)** | _çekilecek: aynı sahnede iki oyuncu, modelin iki farklı kararı_ |
 
 ## Teslim linkleri — v1
@@ -35,6 +35,13 @@ v1 öğrenciye kriz senaryolarında karar verdirip kendi varsayımını sorgulat
 | Demo video, README, vize sınav tasarımı | 10 | bu dosya · [`SINAV_TASARIMI.md`](./SINAV_TASARIMI.md) |
 
 **Test durumu: 34/34 geçiyor** — v1 regresyonu **20/20** (dosyalar değiştirilmedi) + v2 **14/14**.
+
+v2'nin 14 testi **canlı GitHub Pages adresine karşı** koşuldu (2026-11-01), yerel sunucuya değil: diferansiyel test, yayındaki tarayıcı çıkarımının Python kahiniyle `1e-4` içinde uyuştuğunu gösteriyor.
+
+```bash
+npx cypress run --spec "cypress/e2e/parite.cy.js,cypress/e2e/v2-akis.cy.js" \
+  -x v2Url=https://gonulnazire.github.io/primer/web/
+```
 
 ## Puanlama kalemleri nerede — v1
 

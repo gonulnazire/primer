@@ -625,4 +625,4 @@ Sabitlenen commit, eylem eşiği ve devreye alma oranı `web/site.json`'da tutul
 - [x] Davranış testi (AC13) ve regresyon koşumu — [`cypress/e2e/v2-akis.cy.js`](./cypress/e2e/v2-akis.cy.js) · **v2 14/14**, v1 takımı dokunulmadan **20/20** (2026-11-01)
 - [ ] **60–90 sn demo video** — aynı sahnede iki oyuncu, modelin iki farklı kararı
 - [x] Vize sınav tasarımı düşünce egzersizi — [`SINAV_TASARIMI.md`](./SINAV_TASARIMI.md)
-- [ ] **GitHub Pages'in açılması** — `main` / kök; v2 uygulamasının canlı linki buradan geliyor
+- [x] GitHub Pages yayını — <https://gonulnazire.github.io/primer/web/> · v2'nin 14 testi **canlı adrese karşı** 14/14 geçti (2026-11-01)

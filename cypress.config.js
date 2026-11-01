@@ -25,6 +25,17 @@ module.exports = defineConfig({
     // Koşum videosu otomatik kaydedilir; demo videosunun ham kaynağı budur.
     video: true,
     videosFolder: 'cypress/videos',
+
+    // DİKKAT: Cypress her koşumdan ÖNCE videosFolder'ı boşaltır (varsayılan
+    // trashAssetsBeforeRuns: true). Bu depoda videolar commit'li teslim kanıtı
+    // olduğu için `--spec` ile alt küme koşmak, koşulmayan spec'lerin
+    // videolarını siler. Kural: VİDEOLARI YENİLERKEN TÜM TAKIMI KOŞ
+    // (`npx cypress run`, --spec olmadan). Alt küme koşup yanlışlıkla silersen
+    // `git checkout -- cypress/videos/` geri getirir.
+    //
+    // trashAssetsBeforeRuns:false denendi ve GERİ ALINDI: silmeyi durduruyor
+    // ama Cypress üzerine yazmak yerine "ad (1).mp4" kopyası üretiyor, yani
+    // depodaki videolar bayatlıyor ve taze olanlar takip dışı kalıyor.
     screenshotOnRunFailure: true,
 
     // Canlı siteye karşı koşuyoruz; ağ gecikmesine pay bırak.

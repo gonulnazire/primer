@@ -37,6 +37,14 @@ from pathlib import Path
 
 import numpy as np
 
+# Windows konsolu cp1254 kullanıyor; Türkçe olmayan tek bir işaret betiği
+# UnicodeEncodeError ile düşürebiliyor (train.py'de de aynı önlem var).
+try:
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+    sys.stderr.reconfigure(encoding="utf-8", errors="replace")
+except (AttributeError, OSError):
+    pass
+
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from sozlesme import (  # noqa: E402
@@ -90,7 +98,38 @@ def gercek_satirlari_oku() -> list[dict]:
             for s in okuyucu:
                 s["kaynak"] = "gercek"
                 satirlar.append(s)
-    return satirlar
+
+    return tekille(satirlar)
+
+
+def tekille(satirlar: list[dict]) -> list[dict]:
+    """Aynı (oturum_id, sahne_no) satırını bir kez tutar.
+
+    Neden gerekli: uygulamadaki "CSV indir" düğmesi o tarayıcıda BİRİKMİŞ tüm
+    satırları indiriyor. Katılımcı her oturumdan sonra indirirse aynı karar
+    birden çok dosyada çıkar ve birleştirince veri sessizce şişer — model aynı
+    satırı birkaç kez görür, çapraz doğrulama olduğundan iyi sonuç verir.
+
+    (oturum_id, sahne_no) çifti bir kararı tek olarak belirliyor: oturum
+    kimliği rastgele ve sahne numarası oturum içinde tek.
+    """
+    gorulen: set[tuple[str, str]] = set()
+    tekil: list[dict] = []
+    yinelenen = 0
+
+    for s in satirlar:
+        anahtar = (str(s.get("oturum_id", "")), str(s.get("sahne_no", "")))
+        if anahtar in gorulen:
+            yinelenen += 1
+            continue
+        gorulen.add(anahtar)
+        tekil.append(s)
+
+    if yinelenen:
+        print(f"bilgi: {yinelenen} yinelenen satır atlandı "
+              "(aynı oturum birden çok CSV'de indirilmiş)")
+
+    return tekil
 
 
 # -------------------------------------------------------------- sentetik veri
@@ -260,7 +299,13 @@ def main() -> None:
     g_kisi = len({s["kisi_kodu"] for s in gercek if s.get("kisi_kodu")})
     refleks = sum(int(float(s["refleks"])) for s in hepsi)
 
-    print(f"yazıldı: {a.cikti.relative_to(KOK)}")
+    # --cikti depo dışına verilebilir; relative_to o durumda hata atıyor.
+    try:
+        gosterilen = a.cikti.relative_to(KOK)
+    except ValueError:
+        gosterilen = a.cikti
+
+    print(f"yazıldı: {gosterilen}")
     print(f"  satır        : {len(hepsi)}  (gerçek {len(gercek)} + sentetik {len(sentetik)})")
     print(f"  gerçek oturum: {g_oturum}  ({g_kisi} farklı katılımcı kodu)")
     print(f"  etiket dengesi: refleks={refleks}  dusunerek={len(hepsi) - refleks}"
@@ -269,6 +314,46 @@ def main() -> None:
     if g_oturum < 15:
         print(f"\nUYARI: ödev en az 15 GERÇEK oturum istiyor, şu an {g_oturum} var.")
         print("Yalnız sentetik veriyle Veri kaleminin yarısı alınır.")
+
+    etiket_dengesi_uyar(gercek)
+
+
+def etiket_dengesi_uyar(gercek: list[dict]) -> None:
+    """Gerçek verinin tek sınıfa çökmüş olup olmadığını denetler.
+
+    Neden ayrı bir denetim: şema geçerli, etiket kuralı tutarlı ve satır sayısı
+    yeterli olsa bile veri İŞE YARAMAZ olabilir. Bütün gerçek kararlar aynı
+    etiketi taşıyorsa (ör. herkes metni okumadan tıklamış), gerçek veri modele
+    hiçbir ayrım bilgisi vermez; modelin ayırt etme gücünün tamamı sentetik
+    veriden gelir. Bu, ölçülmeden fark edilmeyecek bir kalite sorunudur —
+    Breck vd. (2017) ML Test Score'daki "veri dağılımını doğrula" maddesi.
+    """
+    if not gercek:
+        return
+
+    etiketler = [int(float(s["refleks"])) for s in gercek]
+    refleks = sum(etiketler)
+    oran = refleks / len(etiketler)
+
+    sureler = sorted(float(s["karar_suresi_sn"]) for s in gercek)
+    ortanca = sureler[len(sureler) // 2]
+
+    print(f"\ngerçek veri: {len(etiketler)} karar · refleks oranı %{100 * oran:.1f}"
+          f" · ortanca karar süresi {ortanca:.2f} sn")
+
+    if refleks in (0, len(etiketler)):
+        tek = "refleks" if refleks else "dusunerek"
+        print()
+        print("!!! VERİ KALİTESİ UYARISI: gerçek verinin TAMAMI tek sınıf "
+              f"('{tek}').")
+        print("    Gerçek veri modele hiçbir ayrım bilgisi vermiyor; ayırt etme")
+        print("    gücünün tamamı sentetik veriden gelir.")
+        if ortanca < 3:
+            print(f"    Ortanca karar süresi {ortanca:.2f} sn — kriz metinlerini")
+            print("    okumak ~15 sn sürüyor. Bu veri 'oynanmış' değil,")
+            print("    'tıklanıp geçilmiş' gibi görünüyor.")
+        print("    Yapılacak: karşı sınıftan da oturum topla (metni okuyarak"
+              " oynanan).")
 
 
 if __name__ == "__main__":
