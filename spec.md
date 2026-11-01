@@ -367,6 +367,18 @@ Erişilebilirliğin eşiği yok çünkü bu bir kalite değil kapasite ölçüt�
 
 **AC9 nereden geldi:** Tasarım aşamasında Stitch'in ürettiği bir ekranda `Simülasyon Özeti` etiketi, ekranda `SIMÜLASYON ÖZETI` diye göründü. Kök neden metin değil, tek bir nitelikti: üretilen HTML `lang="en"` taşıyordu ve CSS'in `text-transform: uppercase` dönüşümü dile duyarlı olduğu için `i` harfini `I` yaptı. Bu, spec'te hiç yazılmamış görünmez bir varsayımdı ("Türkçe metin her yerde doğru görünür") ve ödevin *"ilk takıldığın yer spec'indeki görünmez varsayımdır, onu kabul örneği yap"* ipucunun birebir karşılığı olduğu için kabul örneğine dönüştürüldü.
 
+### v2 kabul örnekleri (model katmanı)
+
+Aşağıdaki üçü **veri toplanmadan ve model eğitilmeden önce** yazıldı. Ayrıntılı gerekçe: §10.
+
+| # | Given | When | Then |
+|---|---|---|---|
+| **AC11** | `data/oturumlar.csv` hazır, kabul eşiği §10.5'te yazılı | `python train.py` koşar | 5 katlı çapraz doğrulama ROC-AUC eşiğin altındaysa betik sıfırdan farklı çıkış koduyla durur ve `model/` altındaki artefaktlar **güncellenmez**; eşiği geçerse `model.onnx` + `config.json` yeniden yazılır |
+| **AC12** | `tests/parite.json`'daki beş referans girdi ve Python kahininin olasılıkları | Aynı beş girdi uygulamanın içindeki ONNX çıkarımıyla hesaplanır | Her girdide `\|p_uygulama − p_kahin\| < 1e-4` |
+| **AC13** | Geçmişi `p(refleks) ≥ karar_esigi` üreten bir oturum | Karar noktasına girilir | Yansıma duraklaması görünür ve seçenekler 3 saniye pasif kalır; duraklama **hiçbir seçeneği işaret etmez**. Eşiğin altındaki bir oturumda duraklama hiç görünmez ve seçenekler anında aktiftir |
+
+**AC13'ün ikinci yönü neden şart:** yalnızca "duraklama görünüyor" test edilirse, her zaman duraklatan bir uygulama da testi geçer — model hiç çalışmasa bile. İki yönlü test, davranış değişikliğinin gerçekten modelden geldiğini doğrular.
+
 ---
 
 ## 8. Test ve Doğrulama Stratejisi
@@ -406,6 +418,20 @@ Serbest sohbet, ilk spec'te *"deterministik test edilemez"* gerekçesiyle kapsam
 | Sıfırlama | "Sohbeti sıfırla" saklanan e-postayı siliyor |
 
 **İki doğrulama katmanı bulundu.** Alan `<input type="email">` olduğu için tarayıcının HTML5 doğrulaması uygulamanınkinden önce çalışıyor; çoğu yazım hatasında kullanıcı tarayıcının kendi dilindeki balonunu görüyor, uygulamanın Türkçe uyarısını değil. İkisi ayrı ayrı test edildi, davranış belgelendi ama düzeltilmedi — tutarlı Türkçe uyarı için native doğrulamayı kapatmak gerekirdi ki bunun erişilebilirlik bedeli var.
+
+### Model katmanı testleri (v2)
+
+| Test | Nerede | Doğruladığı |
+|---|---|---|
+| Eval kapısı — eşik altı sürüm durur | `train.py` (komut satırı) | AC11 |
+| ONNX ↔ sklearn farkı `< 1e-4` | `train.py` dışa aktarım denetimi | §10.7 artefakt bütünlüğü |
+| Diferansiyel (parite) testi — uygulama vs Python kahini | `cypress/e2e/parite.cy.js` + `tests/parite.py` | AC12 |
+| Yansıma duraklaması iki yönlü | `cypress/e2e/v2-akis.cy.js` | AC13 |
+| Akış bütünlüğü (profil, karıştırma, iki son) v2 sayfasında | `cypress/e2e/v2-akis.cy.js` | AC1, AC3–AC5, AC10 |
+
+**Regresyon kuralı: v1 test dosyaları değiştirilmez.** `cypress/e2e/primer.cy.js` ve `cypress/e2e/sohbet.cy.js` v2 çalışması boyunca tek karakter bile değişmeyecek ve her koşumda yeşil kalacak. Regresyon kanıtının değeri dosyaların aynı kalmasından geliyor; v2 spec'leri bu yüzden kendi yardımcı fonksiyonlarını taşır (≈30 satır tekrar, bilinçli bedel — ortak bir yardımcı dosyaya çekmek v1 dosyalarına dokunmak demekti).
+
+İki test hedefi var: v1 spec'leri `cypress.config.js`'teki `baseUrl` ile **yayındaki AI Studio uygulamasına**, v2 spec'leri `Cypress.env('v2Url')` ile **GitHub Pages sayfasına** (veya yerel sunucuya) koşar.
 
 ### İnsan testi
 Gerçek bir öğrenci arkadaşa, müdahale edilmeden oynatılır. **İlk takıldığı yer, bu spec'teki görünmez bir varsayımdır** ve yeni bir kabul örneğine dönüştürülür. Gözlem notları ve eklenen kabul örneği rapora yazılır.
@@ -466,7 +492,110 @@ Bu ayrım kayda geçirildi çünkü dışarıdan bakıldığında ikisi aynı g�
 
 ---
 
-## 10. Teslim Kontrol Listesi
+## 10. Model Gereksinimi (v2)
+
+v1'de kişiselleştirme **sabit kurallara** dayanıyordu: profil cevapları §4'teki tabloya göre metni ve soru derinliğini değiştiriyordu. Hiçbir şey oyuncunun *davranışından* öğrenmiyordu. v2, uyumun bir kısmını kendi eğittiğimiz küçük bir modele devrediyor.
+
+Bu bölüm **eğitimden önce** yazıldı. Eşik burada sabitlendi; ölçüm sonucuna göre gevşetilmesi kural ihlalidir.
+
+### 10.1 Mimari: üçüncü katman
+
+| Katman | Nasıl çalışır | Neden böyle |
+|---|---|---|
+| **Dallanma** (senaryo, seçenekler, sonlar) | Deterministik karar ağacı | Cypress her koşumda aynı sonucu görmeli |
+| **Sokratik geri bildirim** | Canlı LLM çağrısı, vekil üzerinden | Eval'de ölçülecek gerçek model davranışı gerekiyor |
+| **Uyum (v2'de eklendi)** | **Kendi eğittiğimiz lojistik regresyon, ONNX olarak uygulamada** | Davranıştan öğrenen kısım ölçülebilir, sürümlenebilir ve geri alınabilir bir artefakt olmalı |
+
+### 10.2 Hedef: `refleks`
+
+Model şunu tahmin eder: **öğrenci girdiği karar noktasında refleksle mi karar verecek?**
+
+Eşik geçilirse uygulama, karar noktasına girişte **yansıma duraklaması** gösterir: tek bir Sokratik mikro-soru ("Bu kararı vermeden önce: neyi varsayıyorsun?") ve seçenekler 3 saniye pasif kalır.
+
+**Müdahale cevap-nötr olmak zorundadır.** Bu, §5'teki karıştırma kuralının ve §1'deki ürün iddiasının doğrudan sonucu: duraklama hiçbir seçeneği işaret etmez, hiçbir seçeneği öne çıkarmaz, metni değiştirmez. Yalnızca kararı geciktirir ve soruyu sorar. Model "şu seçeneği seç" diyebilseydi ürünün amacı çökerdi — modelin yetkisi *ne zaman durdurulacağı* ile sınırlıdır, *ne seçileceği* ile değil.
+
+Başlangıç reposundaki *"bu oyuncunun ipucuna ihtiyacı var mı"* örneği bilinçli olarak kullanılmadı: ipucu vermek, bu üründe doğrudan cevabı sızdırmak demektir (§6.1 S1).
+
+### 10.3 Özellik sözleşmesi
+
+Çıkarım anı: öğrenci **karar noktası k'ya girdiğinde**. Özellikler yalnızca k'dan *önce* bilinen şeylerden türer; k=1'de geçmişe dayalı alanlar 0'dır. Bu kısıt etiket sızıntısını engellemek için var — modelin tahmin ettiği şey henüz gerçekleşmemiş olmalı.
+
+| # | Özellik | Birim / aralık |
+|---|---|---|
+| 1 | `sahne_no` | 1–3 |
+| 2 | `sinif_kodu` | 0 = `1-2`, 1 = `3-4` |
+| 3 | `onceki_karar_suresi_sn` | saniye (k=1'de 0) |
+| 4 | `onceki_okuma_orani` | 0–1 (k=1'de 0) |
+| 5 | `onceki_refleks_sayisi` | 0–2 |
+| 6 | `oturum_gecen_sure_sn` | saniye, oturum başından bu karar noktasına kadar |
+
+**Sıra sözleşmenin parçasıdır** ve `model/config.json`'da yazılıdır; tensör `float32[1,6]`. Tüketiciler (uygulama ve Python kahini) aynı sırayı kullanmak zorundadır.
+
+`rol` ve `hedef` **bilinçli olarak özellik değildir.** Gerekçe: ~45 gerçek satırda altı kategorik seviyeyi one-hot etmek modeli gürültüye oturtur. `sinif` kalıyor, çünkü §4 zaten derinliği sınıfa bağlıyor — yani zaten sistemde olan bir sinyal. Bu kısıt model kartında "kullanılmayan sinyaller" olarak yazılacak.
+
+### 10.4 Etiket kuralı
+
+```
+refleks = 1   eğer   okuma_orani < 0.4
+
+okuma_orani = min(1, metin_gorunur_sure_sn / tahmini_okuma_suresi_sn)
+tahmini_okuma_suresi_sn = o karar noktasında YENİ gösterilen kelime / 200 * 60
+```
+
+Yani: öğrenci, ekranda yeni çıkan metni okumak için gereken sürenin **%40'ından azını** harcadıysa o karar refleks karardır. 200 kelime/dakika Türkçe ortalama okuma hızı varsayımı; %40 eşiği nominal hızın 2,5 katına denk gelir — bu, göz gezdirmenin bile üstünde bir hız, dolayısıyla "okumadı" demek güvenli.
+
+**Bu kural bir ara sürümden sonra düzeltildi, veri toplanmadan önce.** İlk hali iki koşulluydu: `karar_suresi_sn < 6 AND okuma_orani < 0.5`. Uygulama yazılırken iki sorun görüldü:
+
+| Sorun | Neden |
+|---|---|
+| İki koşul aslında tek koşul | 390×844 ekranda kriz paneli, soru ve üç seçenek birlikte sığıyor; metin hiç görünürlükten çıkmıyor, dolayısıyla `metin_gorunur_sure ≈ karar_suresi` ve ikinci koşul bağımsız olarak bağlamıyor |
+| Sabit 6 saniye sahneleri eşit sayıyor | 1. karar noktasında yeni metin ~86 kelime (kriz kurulumu + soru + üç seçenek), 2. ve 3.'de ~36 kelime. Aynı 6 saniye, birinde "okumadı" diğerinde "okudu" demek anlamına geliyor |
+
+Orana indirgemek ikisini birden çözüyor: oran sahnenin kendi okuma yüküne göre normalize oluyor. Eşik veri görülmeden sabitlendi ve veriden sonra değiştirilmeyecek — değiştirilirse etiketi modele uydurmak olur.
+
+### 10.5 Eval metriği ve kabul eşiği
+
+| Ölçüt | Hesap | Eşik | Rolü |
+|---|---|---|---|
+| **ROC-AUC** | 5 katlı tabakalı çapraz doğrulama ortalaması | **≥ 0.70** | **Eval kapısı** — altındaysa `train.py` hata verir, artefakt yayınlanmaz |
+| Dengeli doğruluk | aynı CV | — | raporlanır |
+| Çoğunluk-sınıfı taban çizgisi | aynı CV | — | raporlanır, modelin tabanı geçtiği gösterilir |
+| **`karar_esigi`** | olasılık kesme noktası | **0.60** | **Eylem eşiği** — duraklamanın açılma noktası |
+
+**İki eşik birbirine karıştırılmamalı.** `0.70` modelin *yayınlanabilir* olup olmadığını söyler; `0.60` uygulamanın *müdahale edip etmeyeceğini*. 0.60 bilinçli olarak 0.50'nin üstünde: yanlış pozitif, metni gerçekten okuyan bir öğrenciyi boşuna durdurmak demektir ve bu, ürünün akışına zarar verir. Kesinlik (precision) duyarlılıktan (recall) önce gelir.
+
+Doğruluğun kendisi bir hedef değil: düşük ama dürüstçe ölçülmüş ve sınırları model kartında yazılı bir model, ölçülmemiş iyi bir modelden daha değerlidir.
+
+### 10.6 Veri
+
+`data/oturumlar.csv` — her karar noktası bir satır. En az **15 gerçek oturum** (3 kişi × 5 oturum). `kaynak` sütunu zorunlu: `gercek` | `sentetik`. Sentetik veri yalnızca dengeleme için; üretici kural ve tohum `README.md`'de yazılı. Sütun tanımları `data/SOZLUK.md`'de.
+
+**KVKK.** Ad, e-posta, cihaz kimliği, konum veya başka hassas alt detay **toplanmaz**. `oturum_id` rastgele üretilir; `kisi_kodu` yalnızca `k1`/`k2`/`k3` gibi anonim bir ayrıştırıcıdır ve kimseye geri bağlanamaz. Bu, v1'deki sohbet e-postasından farklı bir karardır: orada e-posta bir etiketti ama yine de saklanıyordu (§2); burada hiçbir kişisel alan hiç toplanmıyor.
+
+### 10.7 Sürümleme
+
+Tüketiciler modeli `main` dalından değil, **commit'e sabitlenmiş URL'den** indirir:
+
+```
+https://huggingface.co/<kullanici>/<repo>/resolve/<commit>/model.onnx
+```
+
+Sabitlenen commit, eylem eşiği ve devreye alma oranı `web/site.json`'da tutulur; geri alma (rollback) bu dosyadaki pin'i önceki commit'e çevirmekten ibarettir. Ayrıntı: `RELEASE.md`.
+
+### 10.8 Kapsam dışı (v2)
+
+| Yapılmayan | Gerekçe |
+|---|---|
+| LLM ince ayarı | Ödev kapsamı dışı; Sokratik katman prompt ile yönetiliyor (§6.2) |
+| Ücretli barındırma | Tüm zincir ücretsiz katmanda: HF Hub, GitHub Pages |
+| Gerçek kişisel veri | §10.6 — hiç toplanmıyor |
+| Kullanıcı hesabı / giriş | v1'deki kararla aynı (§2) |
+| Kendi sunucusunda üçüncü tüketici (bonus) | Dört tüketici doğrulamak bir haftaya sığmıyor; parite iki tüketiciyle (uygulama + Python kahini) kanıtlanıyor |
+| Cihaz içi mobil (Expo / APK) | Tarayıcı tüketicisi ödev gereksinimini karşılıyor; ödünleşim matrisinde yine de değerlendirildi (`RELEASE.md`) |
+
+---
+
+## 11. Teslim Kontrol Listesi
 
 - [x] `spec.md` — bu dosya
 - [x] `DESIGN.md` + Stitch ekran tasarımları — 7 ekran üretildi, üretim notları §9'da
@@ -479,3 +608,21 @@ Bu ayrım kayda geçirildi çünkü dışarıdan bakıldığında ikisi aynı g�
 - [x] `README.md` — 3 ürün kararı + fikir değişikliği anlatısı (serbest sohbet)
 - [x] Arkadaş testi geri bildirim notu — [`TUTOR-EVAL.md`](./TUTOR-EVAL.md) §4.4, bulgu **AC10**'a dönüştürüldü
 - [x] Sohbet için uçtan uca test — [`cypress/e2e/sohbet.cy.js`](./cypress/e2e/sohbet.cy.js) · 7 test
+
+### v2 kalemleri
+
+- [x] Model gereksinimi, eval metriği ve kabul eşiği — §10, eğitimden önce yazıldı
+- [x] Üç yeni kabul örneği — **AC11, AC12, AC13** (§7)
+- [x] Veri sözlüğü — [`data/SOZLUK.md`](./data/SOZLUK.md) · 23 sütun, etiket kuralı, KVKK notu
+- [ ] **En az 15 gerçek oturum** — `data/oturumlar.csv`. Veri toplama modu hazır; şu an 0 gerçek / 180 sentetik satır
+- [x] Tekrarlanabilir eğitim ve eval kapısı — [`train.py`](./train.py) · tek komut, tohum 42, `--esik 0.99` ile kapının kapattığı doğrulandı (çıkış kodu 2, `model/` değişmedi)
+- [x] Artefakt ve sözleşme — `model/model.onnx` (553 bayt, opset 18) + `model/config.json` · ONNX/sklearn farkı 8.5e-08
+- [x] Model kartı — [`model/README.md`](./model/README.md) · Mitchell vd. (2019) yapısında
+- [ ] **Hugging Face yayını, commit'e sabit URL** — adımlar [`RELEASE.md`](./RELEASE.md) §3'te; hesap açılmayı bekliyor
+- [x] Devreye alma ve geri alma planı + ödünleşim matrisi — [`RELEASE.md`](./RELEASE.md) §2 ve §4
+- [x] Uygulamada çıkarım — [`web/index.html`](./web/index.html) · onnxruntime-web 1.20.1, model kararı yansıma duraklamasını açıyor
+- [x] Diferansiyel test ve test kahini — [`cypress/e2e/parite.cy.js`](./cypress/e2e/parite.cy.js) + [`tests/parite.py`](./tests/parite.py) · 5 girdi, en büyük fark < 1e-4
+- [x] Davranış testi (AC13) ve regresyon koşumu — [`cypress/e2e/v2-akis.cy.js`](./cypress/e2e/v2-akis.cy.js) · **v2 14/14**, v1 takımı dokunulmadan **20/20** (2026-11-01)
+- [ ] **60–90 sn demo video** — aynı sahnede iki oyuncu, modelin iki farklı kararı
+- [x] Vize sınav tasarımı düşünce egzersizi — [`SINAV_TASARIMI.md`](./SINAV_TASARIMI.md)
+- [ ] **GitHub Pages'in açılması** — `main` / kök; v2 uygulamasının canlı linki buradan geliyor

@@ -1,6 +1,16 @@
 # Bağımlılıklar — package.json + package-lock.json yeterli (26 MB)
 node_modules/
 
+# Python sanal ortamı ve derleme artıkları — requirements.txt yeterli
+.venv/
+__pycache__/
+*.pyc
+_out/
+
+# v2 ödev metni repoya girmiyor (talep üzerine).
+# Not: v1 ödev metni (mobil_uygulama_dev_detaylar.md) commit'li; bu asimetri bilinçli.
+the_primer_v2_assignment.md
+
 # Cypress ekran görüntüleri her koşumda silinip yeniden üretiliyor;
 # kalıcı kanıt değil. Koşum videoları ise demo kanıtı olduğu için repoda.
 cypress/screenshots/

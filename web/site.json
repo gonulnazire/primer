@@ -1,0 +1,14 @@
+{
+  "_aciklama": "Primer v2 devreye alma yapılandırması. Modelin HANGİ sürümü, KİME ve NE kadar açık olduğu burada tutulur; ayrıntı RELEASE.md. Bu dosyayı değiştirmek tek commit'tir, dolayısıyla her devreye alma adımı geri alınabilir.",
+
+  "model_url": null,
+  "yerel_yedek": "../model/model.onnx",
+  "model_pin": null,
+
+  "karar_esigi": 0.6,
+
+  "golge": true,
+  "devreye_alma_orani": 0.0,
+
+  "surum": "v0"
+}

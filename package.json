@@ -5,7 +5,8 @@
   "description": "Primer — yazılım mühendisliği öğrencileri için Sokratik kriz simülasyonu. E2E testleri.",
   "scripts": {
     "test": "cypress run",
-    "test:open": "cypress open"
+    "test:open": "cypress open",
+    "v2": "python -m http.server 4173"
   },
   "devDependencies": {
     "cypress": "^16.2.1"

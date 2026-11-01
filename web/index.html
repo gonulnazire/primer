@@ -1,0 +1,1172 @@
+<!doctype html>
+<!--
+  Primer v2 — tarayıcı tüketicisi
+  ================================
+  spec.md §10 · DESIGN.md §9.5 (data-testid sözleşmesi) · RELEASE.md (devreye alma)
+
+  Bu sayfa üç işi birden yapar:
+    1. v1'in karar akışını birebir oynatır (spec.md §5 metinleri, aynı karıştırma kuralı)
+    2. Her karar noktasında davranışı ölçer ve CSV satırı üretir (veri toplama modu)
+    3. model.onnx'i onnxruntime-web ile çalıştırıp "yansıma duraklaması"nı tetikler
+
+  lang="tr" ZORUNLU (spec.md AC9): CSS text-transform: uppercase dile duyarlıdır,
+  lang="en" altında Türkçe "i" harfi "I" olur, "İ" olmaz.
+
+  CANLI SOKRATİK KATMAN BU SAYFADA YOK ve bu bir eksiklik değil, ölçülmüş bir kısıt:
+  https://primer-1.ai.studio/api/socratic uç noktası CORS başlığı döndürmüyor
+  (OPTIONS yanıtında Access-Control-Allow-Origin yok), dolayısıyla farklı bir
+  origin'den tarayıcı bu uç noktayı çağıramaz. Sonuç ekranı v1'in yedek sorusunu
+  gösterir ve bunu kullanıcıya açıkça söyler.
+-->
+<html lang="tr">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<title>Primer v2</title>
+<meta name="description" content="Primer v2 — davranıştan öğrenen uyum katmanı: refleks kararları öngören küçük model ve yansıma duraklaması." />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+  /* DESIGN.md §2.1 — renk token'ları */
+  :root {
+    --ink-900: #0E1116;
+    --ink-800: #161B22;
+    --ink-700: #222A35;
+    --text-high: #E6EAF0;
+    --text-mid: #9AA6B8;
+    --amber-400: #E8A33D;
+    --amber-300: #F2C078;
+    --good: #4FB286;
+    --risk: #D96F63;
+    --focus: #7AA2F7;
+  }
+
+  * { box-sizing: border-box; }
+
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: var(--ink-900);
+    color: var(--text-high);
+    font-family: Inter, system-ui, -apple-system, sans-serif;
+    /* AC7 — yatay kaydırma olmamalı */
+    overflow-x: hidden;
+  }
+
+  body { font-size: 17px; line-height: 26px; }
+
+  .kabuk {
+    max-width: 430px;
+    margin: 0 auto;
+    /* DESIGN.md §2.3 — ekran kenar boşluğu 20px */
+    padding: 20px 20px 40px;
+    min-height: 100vh;
+  }
+
+  h1 { font-size: 28px; line-height: 34px; font-weight: 600; margin: 0 0 8px; }
+  h2 { font-size: 20px; line-height: 28px; font-weight: 600; margin: 0 0 12px; }
+
+  .etiket {
+    font-size: 12px;
+    line-height: 16px;
+    font-weight: 500;
+    letter-spacing: 0.04em;
+    color: var(--text-mid);
+    text-transform: uppercase;
+    margin: 0 0 8px;
+  }
+
+  .yardim { font-size: 14px; line-height: 20px; color: var(--text-mid); }
+
+  [hidden] { display: none !important; }
+
+  /* ---- SegmentedChoice (profil) ---- */
+  .segment { display: flex; gap: 8px; margin: 0 0 20px; flex-wrap: wrap; }
+
+  .segment button {
+    flex: 1 1 auto;
+    min-height: 48px;
+    padding: 12px;
+    border-radius: 12px;
+    border: 1px solid var(--ink-700);
+    background: var(--ink-800);
+    color: var(--text-high);
+    font: inherit;
+    font-size: 16px;
+    cursor: pointer;
+  }
+
+  .segment button[aria-pressed="true"] {
+    border-color: var(--amber-400);
+    background: var(--ink-700);
+  }
+
+  /* ---- PrimaryButton ---- */
+  .birincil {
+    width: 100%;
+    min-height: 48px;
+    border: none;
+    border-radius: 12px;
+    background: var(--amber-400);
+    /* DESIGN.md §2.1 — kehribar üzerine KOYU metin, beyaz değil */
+    color: var(--ink-900);
+    font: inherit;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+  }
+
+  .birincil:disabled { background: var(--ink-700); color: var(--text-mid); cursor: not-allowed; }
+
+  .ikincil {
+    width: 100%;
+    min-height: 44px;
+    border: 1px solid var(--ink-700);
+    border-radius: 12px;
+    background: transparent;
+    color: var(--text-mid);
+    font: inherit;
+    font-size: 14px;
+    cursor: pointer;
+  }
+
+  /* ---- ScenarioCard ---- */
+  .kart {
+    display: block;
+    width: 100%;
+    text-align: left;
+    background: var(--ink-800);
+    border: 1px solid var(--ink-700);
+    border-radius: 16px;
+    padding: 16px;
+    margin: 0 0 12px;
+    color: var(--text-high);
+    font: inherit;
+    cursor: pointer;
+  }
+
+  .kart h2 { margin: 0 0 4px; font-size: 17px; line-height: 24px; }
+
+  /* ---- CrisisPanel ---- */
+  .kriz {
+    background: var(--ink-800);
+    border: 1px solid var(--ink-700);
+    border-left: 3px solid var(--amber-400);
+    border-radius: 16px;
+    padding: 16px;
+    margin: 0 0 20px;
+  }
+
+  /* ---- ProgressDots ---- */
+  .ilerleme { display: flex; gap: 8px; align-items: center; margin: 0 0 16px; }
+  .nokta { width: 8px; height: 8px; border-radius: 50%; background: var(--ink-700); }
+  .nokta.aktif { background: var(--amber-400); }
+
+  /* ---- DecisionOption ----
+     İ2 (DESIGN.md §1): üç seçenek GÖRSEL OLARAK BİREBİR AYNI. Tik, renk,
+     ikon, rozet, numara, boyut farkı yok. Sıra da sabit değil (AC10, aşağıda
+     Fisher-Yates). Buradaki tek bir farklılaştırma ürünün amacını çökertir. */
+  .secenek {
+    display: block;
+    width: 100%;
+    text-align: left;
+    min-height: 48px;
+    padding: 14px 16px;
+    margin: 0 0 12px;
+    background: var(--ink-800);
+    border: 1px solid var(--ink-700);
+    border-radius: 12px;
+    color: var(--text-high);
+    font: inherit;
+    font-size: 16px;
+    line-height: 24px;
+    cursor: pointer;
+  }
+
+  .secenek:disabled { opacity: 0.45; cursor: not-allowed; }
+
+  button:focus-visible, input:focus-visible {
+    outline: 2px solid var(--focus);
+    outline-offset: 2px;
+  }
+
+  /* ---- Yansıma duraklaması (v2) ----
+     Cevap-nötr: hiçbir seçeneği işaret etmez, hiçbirini öne çıkarmaz. */
+  .yansima {
+    background: var(--ink-800);
+    border: 1px dashed var(--amber-400);
+    border-radius: 16px;
+    padding: 16px;
+    margin: 0 0 16px;
+  }
+
+  .yansima p { margin: 0; }
+
+  /* ---- OutcomeBanner ---- */
+  .bant {
+    border-radius: 16px;
+    padding: 16px;
+    margin: 0 0 20px;
+    border: 1px solid var(--ink-700);
+  }
+
+  .bant.iyi { border-color: var(--good); }
+  .bant.kotu { border-color: var(--risk); }
+  .bant .baslik { font-weight: 600; }
+  .bant.iyi .baslik { color: var(--good); }
+  .bant.kotu .baslik { color: var(--risk); }
+
+  /* ---- SocraticBlock ---- */
+  .sokratik {
+    background: var(--ink-800);
+    border-left: 3px solid var(--ink-700);
+    border-radius: 0 16px 16px 0;
+    padding: 16px;
+    margin: 0 0 20px;
+    font-style: italic;
+    color: var(--text-high);
+  }
+
+  /* ---- Veri ve model panelleri ---- */
+  .panel {
+    background: var(--ink-800);
+    border: 1px solid var(--ink-700);
+    border-radius: 16px;
+    padding: 16px;
+    margin: 20px 0 0;
+  }
+
+  .panel h2 { font-size: 14px; line-height: 20px; letter-spacing: 0.04em; text-transform: uppercase; color: var(--text-mid); }
+
+  .panel label { display: block; font-size: 14px; color: var(--text-mid); margin: 0 0 4px; }
+
+  .panel input {
+    width: 100%;
+    min-height: 44px;
+    padding: 10px 12px;
+    border-radius: 12px;
+    border: 1px solid var(--ink-700);
+    background: var(--ink-900);
+    color: var(--text-high);
+    font: inherit;
+    font-size: 16px;
+    margin: 0 0 12px;
+  }
+
+  .satir { display: flex; gap: 8px; }
+  .satir > * { flex: 1 1 0; }
+
+  table { width: 100%; border-collapse: collapse; font-size: 14px; }
+  th, td { text-align: left; padding: 6px 4px; border-bottom: 1px solid var(--ink-700); }
+  code { font-size: 13px; color: var(--text-mid); word-break: break-all; }
+  details { margin: 12px 0 0; }
+  summary { cursor: pointer; color: var(--text-mid); font-size: 14px; }
+</style>
+</head>
+<body>
+<main class="kabuk">
+
+  <!-- ============ E1 — Profil ============ -->
+  <section id="ekran-profil">
+    <p class="etiket">Primer v2</p>
+    <h1>Üç soru, sonra bir kriz.</h1>
+    <p class="yardim" style="margin-bottom:24px">
+      Bu uygulama doğru cevabı vermez. Karar verdirir, sonucu gösterir ve kendi
+      varsayımını sorgulatır. <strong>Simülasyon cevapların kaydedilmiyor.</strong>
+    </p>
+
+    <p class="etiket">Sınıfın</p>
+    <div class="segment" data-testid="profil-sinif">
+      <button type="button" data-deger="1-2">1-2</button>
+      <button type="button" data-deger="3-4">3-4</button>
+    </div>
+
+    <p class="etiket">Hedef rolün</p>
+    <div class="segment" data-testid="profil-rol">
+      <button type="button" data-deger="frontend">Frontend</button>
+      <button type="button" data-deger="backend">Backend</button>
+      <button type="button" data-deger="bilmiyorum">Bilmiyorum</button>
+    </div>
+
+    <p class="etiket">Şu an hedefin</p>
+    <div class="segment" data-testid="profil-hedef">
+      <button type="button" data-deger="staj">Staj bulmak</button>
+      <button type="button" data-deger="proje">Projeyi teslim etmek</button>
+      <button type="button" data-deger="ogrenme">Öğrenmek</button>
+    </div>
+
+    <!-- AC1 — üç alan dolmadan pasif -->
+    <button type="button" class="birincil" data-testid="profil-devam" disabled>Devam</button>
+
+    <!-- Veri toplama paneli: ödevin "Veri Toplama Modu"su -->
+    <div class="panel" id="veri-paneli">
+      <h2>Veri toplama modu</h2>
+      <label for="kisi-kodu">Katılımcı kodu (yalnız <code>k1</code>, <code>k2</code>, <code>k3</code> gibi)</label>
+      <input id="kisi-kodu" data-testid="kisi-kodu" inputmode="text" autocomplete="off" placeholder="k1" />
+      <p class="yardim" style="margin:0 0 12px">
+        Toplanan: <strong data-testid="satir-sayisi">0</strong> karar satırı ·
+        <strong data-testid="oturum-sayisi">0</strong> oturum
+      </p>
+      <div class="satir">
+        <button type="button" class="ikincil" data-testid="veri-indir">CSV indir</button>
+        <button type="button" class="ikincil" data-testid="veri-sifirla">Sıfırla</button>
+      </div>
+      <details>
+        <summary>Ne toplanıyor, ne toplanmıyor?</summary>
+        <p class="yardim">
+          Toplanan: hangi senaryo, kaçıncı karar, karar süresi, metnin ekranda görünür
+          kaldığı süre, seçilen seçeneğin etiketi. Veri yalnızca bu tarayıcıda durur
+          (<code>localStorage</code>) ve <strong>hiçbir sunucuya gönderilmez</strong>;
+          CSV'yi sen indirip paylaşırsın.
+        </p>
+        <p class="yardim">
+          Toplanmayan: ad, e-posta, öğrenci numarası, konum, cihaz kimliği, IP, zaman
+          damgası. Oturum kimliği rastgele üretilir. Ayrıntı:
+          <code>data/SOZLUK.md</code>.
+        </p>
+      </details>
+    </div>
+  </section>
+
+  <!-- ============ E2 — Senaryo menüsü ============ -->
+  <section id="ekran-menu" hidden>
+    <p class="etiket">Senaryo seç</p>
+    <h1>Hangi kriz?</h1>
+    <p class="yardim" style="margin-bottom:24px">Üç karar vereceksin. Geri dönüş yok.</p>
+    <div id="senaryo-listesi"></div>
+  </section>
+
+  <!-- ============ E3 — Kriz ve karar ============ -->
+  <section id="ekran-karar" hidden>
+    <div class="ilerleme" data-testid="ilerleme">
+      <span class="nokta"></span><span class="nokta"></span><span class="nokta"></span>
+      <span class="yardim" id="ilerleme-metni" style="margin-left:8px"></span>
+    </div>
+
+    <!-- Okuma süresi bu alan üzerinden ölçülür (IntersectionObserver) -->
+    <div id="metin-alani">
+      <div class="kriz" data-testid="kriz-metni" id="kriz-metni"></div>
+      <h2 id="karar-sorusu"></h2>
+    </div>
+
+    <!-- Yansıma duraklaması — modelin tek yetkisi burayı açmak -->
+    <div class="yansima" data-testid="yansima" id="yansima" hidden>
+      <p class="etiket" style="margin-bottom:4px">Bir saniye</p>
+      <p>Bu kararı vermeden önce: <strong>neyi varsayıyorsun?</strong></p>
+      <p class="yardim" id="yansima-sayac" style="margin-top:8px"></p>
+    </div>
+
+    <div id="secenekler"></div>
+  </section>
+
+  <!-- ============ E4 — Sonuç ve Sokratik ============ -->
+  <section id="ekran-sonuc" hidden>
+    <p class="etiket">Simülasyon özeti</p>
+
+    <div class="bant" data-testid="sonuc-bandi" id="sonuc-bandi">
+      <p class="baslik" id="sonuc-baslik"></p>
+      <p id="sonuc-metni" style="margin:8px 0 0"></p>
+      <p class="yardim" id="sonuc-sayi" style="margin:8px 0 0"></p>
+    </div>
+
+    <div class="sokratik" data-testid="sokratik-blok" id="sokratik-blok"></div>
+
+    <button type="button" class="birincil" data-testid="bastan-basla">Baştan başla</button>
+
+    <div class="panel" id="model-paneli">
+      <h2>Uyum katmanı</h2>
+      <table>
+        <tbody>
+          <tr><th>Model durumu</th><td data-testid="model-durumu">—</td></tr>
+          <tr><th>Son olasılık</th><td data-cy="p" data-testid="model-olasilik">—</td></tr>
+          <tr><th>Mod</th><td data-testid="model-modu">—</td></tr>
+          <tr><th>Sürüm</th><td><code data-testid="model-surumu">—</code></td></tr>
+        </tbody>
+      </table>
+      <p class="yardim" style="margin:12px 0 0">
+        Model yalnızca <em>ne zaman durulacağını</em> söyler, <em>ne seçileceğini</em>
+        söylemez. Duraklama hiçbir seçeneği işaret etmez (<code>spec.md</code> §10.2).
+      </p>
+    </div>
+  </section>
+
+  <!-- ============ Parite kendi kendini denetleme modu (?parite=1) ============ -->
+  <section id="ekran-parite" hidden>
+    <p class="etiket">Diferansiyel test</p>
+    <h1>Parite denetimi</h1>
+    <p class="yardim">
+      <code>tests/parite.json</code>'daki referans girdiler bu sayfadaki ONNX
+      çıkarımıyla hesaplanır. Cypress bu değerleri Python kahininin olasılıklarıyla
+      karşılaştırır (<code>spec.md</code> AC12, tolerans <code>1e-4</code>).
+    </p>
+    <p class="yardim">Model durumu: <strong data-testid="parite-durumu">yükleniyor…</strong></p>
+    <table>
+      <thead><tr><th>#</th><th>Girdi</th><th>p(refleks)</th></tr></thead>
+      <tbody id="parite-govde"></tbody>
+    </table>
+  </section>
+
+</main>
+
+<!--
+  onnxruntime-web SÜRÜMÜ SABİT. Gerekçe: parite testi iki çalışma zamanı arasındaki
+  farkı 1e-4 toleransla ölçüyor; "latest" çekmek, ölçtüğümüz şeyin bizim haberimiz
+  olmadan değişmesi demek olurdu.
+-->
+<script src="https://cdn.jsdelivr.net/npm/onnxruntime-web@1.20.1/dist/ort.min.js"></script>
+<script>
+/* =====================================================================
+   1. SENARYO VERİSİ — spec.md §5'ten birebir
+   ===================================================================== */
+
+const SENARYOLAR = {
+  'donem-projesi': {
+    ad: 'Dönem projesi teslim krizi',
+    ozet: 'Teslime 48 saat, main bozuk, takım arkadaşı kayıp',
+    kurulum:
+      'Teslime 48 saat kaldı. Üç kişilik takımdasınız. main branch çalışmıyor. ' +
+      'Takım arkadaşlarınızdan biri iki gündür mesajlara cevap vermiyor. ' +
+      'Hoca sunumda canlı demo bekliyor.',
+    // spec.md §4 — hedef rol krizin teknik detayını değiştirir (AC2)
+    rolEki: {
+      backend: 'Son migration veritabanını kilitledi.',
+      frontend: 'Build pipeline kırıldı, npm run build hata veriyor.',
+      bilmiyorum: 'Proje artık açılmıyor, hata mesajı anlaşılmaz.',
+    },
+    kararlar: [
+      {
+        soru: 'Bozuk main ile ne yapacaksınız?',
+        secenekler: [
+          { metin: 'Son çalışan commit’e dön, kaybolan işi sonra ekle', etiket: 'saglam' },
+          { metin: 'Gece boyu hatayı debug et, çözene kadar uğraş', etiket: 'riskli' },
+          { metin: 'Kendi branch’inde minimal çalışan bir sürüm kur', etiket: 'orta' },
+        ],
+      },
+      {
+        soru: 'Kayıp takım arkadaşı',
+        secenekler: [
+          { metin: 'Arkadaşına net bir süre veren son bir mesaj at, cevap gelmezse hocaya bildir', etiket: 'saglam' },
+          { metin: 'Hiçbir şey söylemeyip onun işini de sen yap', etiket: 'riskli' },
+          { metin: 'Teslimden sonra durumu hocaya şikayet et', etiket: 'riskli' },
+        ],
+      },
+      {
+        soru: 'Teslim kapsamı',
+        secenekler: [
+          { metin: 'Çalışan 3 özelliği cilala, eksikleri sunumda açıkça söyle', etiket: 'saglam' },
+          { metin: '8 özelliğin hepsini yarım bırak, demoda hızlı geç', etiket: 'riskli' },
+          { metin: 'Demoyu video olarak çek, canlı gösterim riskinden kaç', etiket: 'orta' },
+        ],
+      },
+    ],
+    sonlar: {
+      iyi: 'Proje teslim edildi. Hoca eksikleri biliyordu, demo canlıda çalıştı.',
+      kotu: 'Demo sunumda çöktü. Hoca projeyi değil, hazırlıksızlığı gördü. Takım arkadaşın hiç ortaya çıkmadı.',
+    },
+  },
+
+  'staj-task': {
+    ad: 'İlk staj task’ın',
+    ozet: 'Mentor izinde, düzeltme için canlı veriye dokunmak gerekiyor',
+    kurulum:
+      'Stajınızın ikinci haftası. Mentorunuz izinde. Size "basit" denilen bir hata ' +
+      'verildi: bir müşteri raporu yanlış toplam gösteriyor. Kimse size bu yetkiyi ' +
+      'vermedi ama teknik erişiminiz var.',
+    rolEki: {
+      backend: 'Düzeltmek için canlı veritabanında bir UPDATE çalıştırmak gerekiyor gibi görünüyor.',
+      frontend: 'Düzeltmek için prod’a doğrudan hotfix atmak gerekiyor gibi görünüyor.',
+      bilmiyorum: 'Düzeltmek için yetkilendirilmemiş bir sisteme erişmek gerekiyor gibi görünüyor.',
+    },
+    kararlar: [
+      {
+        soru: 'Erişim var, yetki yok',
+        secenekler: [
+          { metin: 'Durumu takım kanalına yazılı olarak sor, bekle', etiket: 'saglam' },
+          { metin: 'Hemen düzelt, küçük bir değişiklik, kimse fark etmez', etiket: 'riskli' },
+          { metin: 'Hatayı kendi kopyanda çoğalt, kanıtla, sonra öneri getir', etiket: 'orta' },
+        ],
+      },
+      {
+        soru: 'İki saat geçti, cevap yok',
+        secenekler: [
+          { metin: 'Mentorun yerine bakan kişiyi bul ve doğrudan sor', etiket: 'saglam' },
+          { metin: 'Canlıda dene, önce yedek al', etiket: 'riskli' },
+          { metin: 'Task’ı bekletip başka işe geç, durumu yazılı not düş', etiket: 'orta' },
+        ],
+      },
+      {
+        soru: 'Çözümü buldun, test yok',
+        secenekler: [
+          { metin: 'Küçük bir test yaz, sonra PR aç', etiket: 'saglam' },
+          { metin: 'Test yazmak stajyer işi değil, doğrudan PR aç', etiket: 'riskli' },
+          { metin: 'PR’ı aç ama "test eklenmeli" notunu düş', etiket: 'orta' },
+        ],
+      },
+    ],
+    sonlar: {
+      iyi: 'Mentorun döndüğünde sorunu yazılı bir özetle karşıladı. Düzeltme ertesi gün test edilip yayına alındı. Takım sana bir iş daha emanet etti.',
+      kotu: 'Canlı veriyi değiştirdin, rapor düzeldi. İki hafta sonra muhasebe tutmayan bir kayıt buldu; kimin ne zaman değiştirdiği belli değildi. Stajın kalanında sana erişim verilmedi.',
+    },
+  },
+
+  'vize-haftasi': {
+    ad: 'Vize haftası çatışması',
+    ozet: 'Üç sınav, bir grup ödevi ve kopya şüphesi',
+    kurulum:
+      'Üç gün içinde üç vizeniz var. Aynı hafta grup ödevi teslimi. Grup ' +
+      'arkadaşınızın gönderdiği kod çalışıyor, ama internette neredeyse birebir ' +
+      'aynısını buldunuz.',
+    // spec.md §5.3'te bu senaryo için rol uyarlaması tanımlı değil
+    rolEki: { backend: '', frontend: '', bilmiyorum: '' },
+    kararlar: [
+      {
+        soru: 'Kopya şüphesi',
+        secenekler: [
+          { metin: 'Arkadaşına doğrudan ve yargılamadan sor', etiket: 'saglam' },
+          { metin: 'Hiçbir şey demeyip olduğu gibi teslim et', etiket: 'riskli' },
+          { metin: 'Sessizce kendi kısmını ayır, onun kodunu kullanma', etiket: 'orta' },
+        ],
+      },
+      {
+        soru: 'Zaman bölüşümü',
+        secenekler: [
+          { metin: 'En ağır vizeye odaklan, ödevi geçer seviyede bitir', etiket: 'saglam' },
+          { metin: 'Ödevi mükemmel yap, vizelere gece çalış', etiket: 'riskli' },
+          { metin: 'Gruptan birlikte süre uzatımı talebi yazmayı öner', etiket: 'orta' },
+        ],
+      },
+      {
+        soru: 'Teslim anı',
+        secenekler: [
+          { metin: 'Kendi katkını açıkça işaretleyip teslim et', etiket: 'saglam' },
+          { metin: 'Olduğu gibi, hiçbir not düşmeden teslim et', etiket: 'riskli' },
+          { metin: 'Teslimi geciktir, önce durumu netleştir', etiket: 'orta' },
+        ],
+      },
+    ],
+    sonlar: {
+      iyi: 'Ödev geçer notu aldı, üç vizeden ikisini iyi verdin. Grup arkadaşın kodun kaynağını hocaya kendisi söyledi.',
+      kotu: 'Ödev intihal taramasına takıldı. Hoca grubun tamamını çağırdı; kodu kimin yazdığını kimse açıklayamadı. Vizelerden birine hazırlıksız girdin.',
+    },
+  },
+};
+
+/* spec.md §10.4 — etiket kuralı sabitleri. Veriden sonra DEĞİŞTİRİLMEYECEK. */
+const OKUMA_HIZI_KELIME_DK = 200;
+const REFLEKS_ORAN_ESIGI = 0.4;
+
+/* data/SOZLUK.md — CSV sütun sırası. Değiştirmek sözleşmeyi bozar. */
+const SUTUNLAR = [
+  'oturum_id', 'kisi_kodu', 'oturum_sira', 'senaryo', 'sahne_no',
+  'sinif', 'sinif_kodu', 'rol', 'hedef',
+  'onceki_karar_suresi_sn', 'onceki_okuma_orani', 'onceki_refleks_sayisi', 'oturum_gecen_sure_sn',
+  'karar_suresi_sn', 'metin_gorunur_sure_sn', 'yeni_kelime_sayisi', 'okuma_orani',
+  'vazgecilen_dokunma', 'secenek_etiketi', 'refleks',
+  'golge_tahmin', 'kaynak', 'surum',
+];
+
+/* spec.md §10.3 — özellik sırası SÖZLEŞMEDİR, model/config.json ile aynı olmalı */
+const OZELLIKLER = [
+  'sahne_no', 'sinif_kodu', 'onceki_karar_suresi_sn',
+  'onceki_okuma_orani', 'onceki_refleks_sayisi', 'oturum_gecen_sure_sn',
+];
+
+const DEPO_ANAHTARI = 'primer_v2_satirlar';
+const KISI_ANAHTARI = 'primer_v2_kisi';
+
+/* =====================================================================
+   2. YARDIMCILAR
+   ===================================================================== */
+
+const $ = (s) => document.querySelector(s);
+const $$ = (s) => Array.from(document.querySelectorAll(s));
+
+function kelimeSay(metin) {
+  return (metin || '').trim().split(/\s+/).filter(Boolean).length;
+}
+
+function rastgeleId() {
+  const b = new Uint8Array(4);
+  crypto.getRandomValues(b);
+  return Array.from(b, (x) => x.toString(16).padStart(2, '0')).join('');
+}
+
+/* AC10 — seçenek sırası karar noktasına GİRİŞTE BİR KEZ karıştırılır.
+   Her yeniden çizimde karıştırmak seçenekleri kullanıcının gözü önünde yer
+   değiştirtir; bu yüzden karıştırılmış dizi state'te tutulur. */
+function karistir(dizi) {
+  const k = dizi.slice();
+  for (let i = k.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [k[i], k[j]] = [k[j], k[i]];
+  }
+  return k;
+}
+
+/* Kanarya kovası: oturum kimliğinden deterministik 0–1 arası sayı.
+   Aynı oturum sayfa yenilense bile aynı kovada kalır. */
+function kova(oturumId) {
+  let h = 2166136261;
+  for (let i = 0; i < oturumId.length; i++) {
+    h ^= oturumId.charCodeAt(i);
+    h = Math.imul(h, 16777619);
+  }
+  return ((h >>> 0) % 10000) / 10000;
+}
+
+function satirlariOku() {
+  try {
+    return JSON.parse(localStorage.getItem(DEPO_ANAHTARI) || '[]');
+  } catch {
+    return [];
+  }
+}
+
+function satirlariYaz(satirlar) {
+  try {
+    localStorage.setItem(DEPO_ANAHTARI, JSON.stringify(satirlar));
+  } catch {
+    /* gizli pencerede veya depolama kapalıysa sessizce geç: oyun çalışmaya devam etmeli */
+  }
+}
+
+/* =====================================================================
+   3. DURUM
+   ===================================================================== */
+
+const durum = {
+  profil: { sinif: null, rol: null, hedef: null },
+  oturumId: null,
+  oturumSira: 0,
+  senaryoId: null,
+  sahne: 0,
+  kararlar: [],          // { etiket, refleks, karar_suresi_sn, okuma_orani }
+  karisikSecenekler: [], // o karar noktasının ekran sırası
+  oturumBaslangici: 0,
+  sahneBaslangici: 0,
+  sahneGorunurMs: 0,
+  sahneYeniKelime: 0,
+  vazgecilenDokunma: 0,
+  sonOlasilik: null,
+  duraklamaAcik: false,
+};
+
+/* Dağıtım yapılandırması ve model */
+let yapilandirma = null;
+let oturumuORT = null;
+let modelDurumu = 'yüklenmedi';
+
+/* =====================================================================
+   4. MODEL — onnxruntime-web
+   ===================================================================== */
+
+async function yapilandirmaYukle() {
+  try {
+    const y = await fetch('site.json', { cache: 'no-store' });
+    if (!y.ok) throw new Error('site.json ' + y.status);
+    return await y.json();
+  } catch (e) {
+    /* Yapılandırma okunamazsa EN GÜVENLİ hale düş: model yok, müdahale yok.
+       Oyun her durumda oynanabilir kalmalı. */
+    return { model_url: null, yerel_yedek: null, karar_esigi: 0.6, golge: true, devreye_alma_orani: 0, surum: 'yapilandirma-yok' };
+  }
+}
+
+async function modelYukle() {
+  yapilandirma = await yapilandirmaYukle();
+
+  const url = yapilandirma.model_url || yapilandirma.yerel_yedek;
+  if (!url) {
+    modelDurumu = 'model tanımlı değil';
+    return;
+  }
+
+  if (typeof ort === 'undefined') {
+    modelDurumu = 'onnxruntime yüklenemedi';
+    return;
+  }
+
+  try {
+    ort.env.wasm.wasmPaths = 'https://cdn.jsdelivr.net/npm/onnxruntime-web@1.20.1/dist/';
+    ort.env.logLevel = 'error';
+    oturumuORT = await ort.InferenceSession.create(url);
+    modelDurumu = 'hazır';
+  } catch (e) {
+    /* Model inmezse uygulama müdahalesiz çalışır — v1 davranışına düşer.
+       Bu, RELEASE.md'deki geri alma planının en son halkası. */
+    modelDurumu = 'yüklenemedi: ' + (e && e.message ? e.message : e);
+    oturumuORT = null;
+  }
+}
+
+/* Özellik vektöründen p(refleks). Tek giriş noktası: parite testi de,
+   oyun da bu fonksiyonu çağırır — iki ayrı çıkarım yolu olmamalı. */
+async function tahminEt(ozellikler) {
+  if (!oturumuORT) return null;
+
+  const girdi = new ort.Tensor('float32', Float32Array.from(ozellikler), [1, ozellikler.length]);
+  const adi = oturumuORT.inputNames[0];
+  const cikti = await oturumuORT.run({ [adi]: girdi });
+
+  /* zipmap=False ile dışa aktarıldığı için olasılıklar düz bir tensör:
+     [p(sinif=0), p(sinif=1)]. İkinci sınıf "refleks" (1). */
+  const anahtar = oturumuORT.outputNames.find((a) => /probab|olasi/i.test(a)) || oturumuORT.outputNames[1];
+  const veri = cikti[anahtar].data;
+  return Number(veri[veri.length - 1]);
+}
+
+/* =====================================================================
+   5. OKUMA SÜRESİ ÖLÇÜMÜ
+   ===================================================================== */
+
+let metinGorunur = false;
+
+const gozlemci = new IntersectionObserver(
+  (kayitlar) => { kayitlar.forEach((k) => { metinGorunur = k.isIntersecting; }); },
+  { threshold: 0.3 }
+);
+
+/* 100 ms'lik sayaç: metin alanı görünür VE sekme önde ise süre birikir.
+   Bildirime bakıp dönen oyuncunun o saniyeleri okuma sayılmamalı. */
+setInterval(() => {
+  if (metinGorunur && document.visibilityState === 'visible' && !$('#ekran-karar').hidden) {
+    durum.sahneGorunurMs += 100;
+  }
+}, 100);
+
+function okumaOrani(gorunurMs, yeniKelime) {
+  const tahminiSn = (yeniKelime / OKUMA_HIZI_KELIME_DK) * 60;
+  if (tahminiSn <= 0) return 1;
+  return Math.min(1, gorunurMs / 1000 / tahminiSn);
+}
+
+/* =====================================================================
+   6. EKRANLAR
+   ===================================================================== */
+
+function ekranGoster(id) {
+  ['ekran-profil', 'ekran-menu', 'ekran-karar', 'ekran-sonuc', 'ekran-parite']
+    .forEach((e) => { $('#' + e).hidden = (e !== id); });
+  window.scrollTo(0, 0);
+}
+
+/* ---- E1 Profil ---- */
+function profilKur() {
+  $$('[data-testid^="profil-"] button').forEach((b) => {
+    b.addEventListener('click', () => {
+      const grup = b.closest('.segment');
+      const alan = grup.dataset.testid.replace('profil-', '');
+      Array.from(grup.querySelectorAll('button')).forEach((k) => k.setAttribute('aria-pressed', 'false'));
+      b.setAttribute('aria-pressed', 'true');
+      durum.profil[alan === 'sinif' ? 'sinif' : alan] = b.dataset.deger;
+      devamDurumu();
+    });
+  });
+
+  $('[data-testid="profil-devam"]').addEventListener('click', () => {
+    menuyuCiz();
+    ekranGoster('ekran-menu');
+  });
+
+  const kayitli = localStorage.getItem(KISI_ANAHTARI);
+  if (kayitli) $('[data-testid="kisi-kodu"]').value = kayitli;
+  $('[data-testid="kisi-kodu"]').addEventListener('input', (e) => {
+    localStorage.setItem(KISI_ANAHTARI, e.target.value.trim());
+  });
+
+  $('[data-testid="veri-indir"]').addEventListener('click', csvIndir);
+  $('[data-testid="veri-sifirla"]').addEventListener('click', () => {
+    satirlariYaz([]);
+    sayaclariGuncelle();
+  });
+}
+
+function devamDurumu() {
+  const p = durum.profil;
+  $('[data-testid="profil-devam"]').disabled = !(p.sinif && p.rol && p.hedef);
+}
+
+/* ---- E2 Menü ---- */
+function menuyuCiz() {
+  const liste = $('#senaryo-listesi');
+  liste.innerHTML = '';
+  Object.entries(SENARYOLAR).forEach(([id, s]) => {
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'kart';
+    b.dataset.testid = 'senaryo-' + id;
+    b.innerHTML = '<h2></h2><p class="yardim" style="margin:0"></p>';
+    b.querySelector('h2').textContent = s.ad;
+    b.querySelector('p').textContent = s.ozet;
+    b.addEventListener('click', () => senaryoBaslat(id));
+    liste.appendChild(b);
+  });
+}
+
+/* ---- E3 Karar ---- */
+function senaryoBaslat(id) {
+  durum.senaryoId = id;
+  durum.sahne = 0;
+  durum.kararlar = [];
+  durum.oturumId = rastgeleId();
+  durum.oturumSira += 1;
+  durum.oturumBaslangici = performance.now();
+  ekranGoster('ekran-karar');
+  kararNoktasiCiz();
+}
+
+async function kararNoktasiCiz() {
+  const s = SENARYOLAR[durum.senaryoId];
+  const karar = s.kararlar[durum.sahne];
+
+  /* İlerleme */
+  $$('#ekran-karar .nokta').forEach((n, i) => n.classList.toggle('aktif', i <= durum.sahne));
+  $('#ilerleme-metni').textContent = (durum.sahne + 1) + '/3';
+
+  /* Kriz metni: yalnız 1. karar noktasında yeni. Sonraki sahnelerde ekranda
+     kalır (bağlam) ama "yeni kelime" sayımına girmez. */
+  const rolEki = s.rolEki[durum.profil.rol] || '';
+  const krizMetni = (s.kurulum + ' ' + rolEki).trim();
+  $('#kriz-metni').textContent = krizMetni;
+  $('#karar-sorusu').textContent = karar.soru;
+
+  /* AC10 — karıştırma karar noktasına girişte bir kez */
+  durum.karisikSecenekler = karistir(karar.secenekler);
+
+  /* Yeni kelime sayısı: sahne 1'de kriz + soru + seçenekler, sonra soru + seçenekler */
+  const secenekKelime = durum.karisikSecenekler.reduce((t, o) => t + kelimeSay(o.metin), 0);
+  durum.sahneYeniKelime = kelimeSay(karar.soru) + secenekKelime +
+    (durum.sahne === 0 ? kelimeSay(krizMetni) : 0);
+
+  /* Seçenekler ÇIKARIM BİTENE KADAR pasif çizilir. Aksi halde çok hızlı dokunan
+     bir oyuncu, model daha cevap vermeden seçimini yapıp duraklamayı atlar —
+     ki modelin hedeflediği oyuncu tam olarak o. Çıkarım yerelde ~1 ms sürdüğü
+     için bu pasiflik kullanıcıya görünmez. */
+  seceneklerCiz();
+  seceneklerPasif(true);
+
+  /* Ölçüm sayaçlarını sıfırla */
+  durum.sahneGorunurMs = 0;
+  durum.vazgecilenDokunma = 0;
+  durum.sahneBaslangici = performance.now();
+  gozlemci.disconnect();
+  gozlemci.observe($('#metin-alani'));
+
+  /* Uyum katmanı: modeli çalıştır, moda göre davran */
+  await uyumKatmani();
+}
+
+/* Seçenekleri yeniden ÇİZMEDEN pasif/aktif yapar. Yeniden çizmek olay
+   dinleyicilerini yeniden bağlar ve kullanıcının dokunduğu düğümü DOM'dan
+   koparır; pasiflik bir durum değişikliği, yeniden çizim sebebi değil. */
+function seceneklerPasif(pasif) {
+  $$('#secenekler .secenek').forEach((b) => { b.disabled = !!pasif; });
+}
+
+function seceneklerCiz(pasif) {
+  const kap = $('#secenekler');
+  kap.innerHTML = '';
+  durum.karisikSecenekler.forEach((secenek, i) => {
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'secenek';
+    /* data-testid SLOT kimliğidir, seçeneğin kimliği değil (CLAUDE.md / AC10).
+       Testler seçeneği metninden bulur. */
+    b.dataset.testid = 'secenek-' + i;
+    b.textContent = secenek.metin;
+    b.disabled = !!pasif;
+
+    /* Vazgeçilen dokunma: basıldı ama tıklama tamamlanmadı (parmak çekildi).
+       Özellik değil, yalnız kaydedilen analiz sinyali (data/SOZLUK.md). */
+    let basili = false;
+    b.addEventListener('pointerdown', () => { basili = true; });
+    b.addEventListener('pointercancel', () => { if (basili) { durum.vazgecilenDokunma++; basili = false; } });
+    b.addEventListener('pointerleave', () => { if (basili) { durum.vazgecilenDokunma++; basili = false; } });
+    b.addEventListener('click', () => { basili = false; secenekSecildi(secenek); });
+
+    kap.appendChild(b);
+  });
+}
+
+/* Modelin tek yetkisi: duraklamayı açmak. Hangi seçeneğin seçileceğine dair
+   hiçbir şey yapamaz (spec.md §10.2). */
+async function uyumKatmani() {
+  $('#yansima').hidden = true;
+  durum.duraklamaAcik = false;
+
+  const ozellikler = ozellikVektoru();
+  const p = await tahminEt(ozellikler);
+  durum.sonOlasilik = p;
+
+  /* Gösterge her çıkarımda güncellenir, yalnız sonuç ekranı çizilirken değil:
+     modelin o anki kararı gözlenebilir olmalı — hem demo videosunda hem de
+     parite testinde okunan değer bu. */
+  modelPaneliGuncelle();
+
+  /* Model yoksa veya inmediyse uygulama v1 davranışına düşer: müdahale yok,
+     seçenekler açık. Bu, RELEASE.md'deki geri alma zincirinin son halkası. */
+  if (p === null) {
+    seceneklerPasif(false);
+    return;
+  }
+
+  const esik = yapilandirma.karar_esigi ?? 0.6;
+  const golge = !!yapilandirma.golge;
+  const oran = yapilandirma.devreye_alma_orani ?? 0;
+  const kovaDegeri = kova(durum.oturumId);
+
+  /* Gölge dağıtım: model çalışır, tahmin kaydedilir, EYLEM YAPILMAZ.
+     Kanarya/aşamalı geçiş: oturum kovası orana düşerse eylem yapılır. */
+  const eylemVar = !golge && kovaDegeri < oran && p >= esik;
+
+  if (eylemVar) {
+    duraklamaAc();
+  } else {
+    seceneklerPasif(false);
+  }
+}
+
+function duraklamaAc() {
+  durum.duraklamaAcik = true;
+  $('#yansima').hidden = false;
+  seceneklerPasif(true);
+
+  let kalan = 3;
+  $('#yansima-sayac').textContent = kalan + ' saniye sonra seçenekler açılacak.';
+  const sayac = setInterval(() => {
+    kalan -= 1;
+    if (kalan > 0) {
+      $('#yansima-sayac').textContent = kalan + ' saniye sonra seçenekler açılacak.';
+    } else {
+      clearInterval(sayac);
+      $('#yansima-sayac').textContent = 'Seçenekler açıldı.';
+      seceneklerPasif(false);
+    }
+  }, 1000);
+}
+
+/* spec.md §10.3 — özellikler yalnız k'dan ÖNCE bilinenlerden türer */
+function ozellikVektoru() {
+  const onceki = durum.kararlar[durum.kararlar.length - 1];
+  const gecen = (performance.now() - durum.oturumBaslangici) / 1000;
+  return [
+    durum.sahne + 1,
+    durum.profil.sinif === '3-4' ? 1 : 0,
+    onceki ? onceki.karar_suresi_sn : 0,
+    onceki ? onceki.okuma_orani : 0,
+    durum.kararlar.filter((k) => k.refleks === 1).length,
+    Number(gecen.toFixed(2)),
+  ];
+}
+
+function secenekSecildi(secenek) {
+  const simdi = performance.now();
+  const kararSuresi = (simdi - durum.sahneBaslangici) / 1000;
+  const gorunurMs = durum.sahneGorunurMs;
+  const oran = okumaOrani(gorunurMs, durum.sahneYeniKelime);
+  const refleks = oran < REFLEKS_ORAN_ESIGI ? 1 : 0;
+
+  const ozellikler = ozellikVektoru();
+  const oncekiKarar = durum.kararlar[durum.kararlar.length - 1];
+
+  satirYaz({
+    oturum_id: durum.oturumId,
+    kisi_kodu: ($('[data-testid="kisi-kodu"]').value || '').trim(),
+    oturum_sira: durum.oturumSira,
+    senaryo: durum.senaryoId,
+    sahne_no: durum.sahne + 1,
+    sinif: durum.profil.sinif,
+    sinif_kodu: durum.profil.sinif === '3-4' ? 1 : 0,
+    rol: durum.profil.rol,
+    hedef: durum.profil.hedef,
+    onceki_karar_suresi_sn: ozellikler[2],
+    onceki_okuma_orani: ozellikler[3],
+    onceki_refleks_sayisi: ozellikler[4],
+    oturum_gecen_sure_sn: ozellikler[5],
+    karar_suresi_sn: Number(kararSuresi.toFixed(2)),
+    metin_gorunur_sure_sn: Number((gorunurMs / 1000).toFixed(2)),
+    yeni_kelime_sayisi: durum.sahneYeniKelime,
+    okuma_orani: Number(oran.toFixed(4)),
+    vazgecilen_dokunma: durum.vazgecilenDokunma,
+    secenek_etiketi: secenek.etiket,
+    refleks: refleks,
+    golge_tahmin: durum.sonOlasilik === null ? '' : Number(durum.sonOlasilik.toFixed(6)),
+    kaynak: 'gercek',
+    surum: (yapilandirma && yapilandirma.surum) || 'v0',
+  });
+
+  durum.kararlar.push({
+    etiket: secenek.etiket,
+    refleks: refleks,
+    karar_suresi_sn: Number(kararSuresi.toFixed(2)),
+    okuma_orani: Number(oran.toFixed(4)),
+  });
+
+  void oncekiKarar; /* okunurluk için tutuldu; hesap ozellikVektoru içinde */
+
+  durum.sahne += 1;
+  if (durum.sahne >= 3) {
+    sonucCiz();
+  } else {
+    kararNoktasiCiz();
+  }
+}
+
+/* ---- E4 Sonuç ---- */
+function sonucCiz() {
+  const s = SENARYOLAR[durum.senaryoId];
+  const saglam = durum.kararlar.filter((k) => k.etiket === 'saglam').length;
+  /* spec.md §3 — 3 kararın en az 2'si sağlam ise İYİ SON */
+  const iyi = saglam >= 2;
+
+  const bant = $('#sonuc-bandi');
+  bant.classList.toggle('iyi', iyi);
+  bant.classList.toggle('kotu', !iyi);
+  $('#sonuc-baslik').textContent = iyi ? 'İYİ SON' : 'KÖTÜ SON';
+  $('#sonuc-metni').textContent = iyi ? s.sonlar.iyi : s.sonlar.kotu;
+  $('#sonuc-sayi').textContent = saglam + '/3 sağlam karar';
+
+  /* Canlı Sokratik katman bu origin'den çağrılamıyor (CORS, başlıktaki nota bkz.) */
+  $('#sokratik-blok').innerHTML =
+    '<p style="margin:0">Rehber şu an cevap veremedi. Kendine sor: bu kararı verirken neyi varsaydın?</p>' +
+    '<p class="yardim" style="font-style:normal;margin:8px 0 0">' +
+    'Canlı Sokratik geri bildirim v1 uygulamasında çalışıyor (primer-1.ai.studio); ' +
+    'bu sayfa farklı bir origin olduğu için o uç noktayı çağıramıyor.</p>';
+
+  modelPaneliGuncelle();
+  sayaclariGuncelle();
+  ekranGoster('ekran-sonuc');
+}
+
+function modelPaneliGuncelle() {
+  $('[data-testid="model-durumu"]').textContent = modelDurumu;
+  $('[data-cy="p"]').textContent =
+    durum.sonOlasilik === null ? '—' : durum.sonOlasilik.toFixed(6);
+
+  const y = yapilandirma || {};
+  const mod = y.golge ? 'gölge (ölçüyor, müdahale etmiyor)'
+    : (y.devreye_alma_orani >= 1 ? 'tam' : 'kanarya %' + Math.round((y.devreye_alma_orani || 0) * 100));
+  $('[data-testid="model-modu"]').textContent = mod;
+  $('[data-testid="model-surumu"]').textContent = y.model_pin || y.surum || '—';
+}
+
+/* =====================================================================
+   7. VERİ TOPLAMA
+   ===================================================================== */
+
+function satirYaz(satir) {
+  const satirlar = satirlariOku();
+  satirlar.push(satir);
+  satirlariYaz(satirlar);
+  sayaclariGuncelle();
+}
+
+function sayaclariGuncelle() {
+  const satirlar = satirlariOku();
+  const oturumlar = new Set(satirlar.map((s) => s.oturum_id));
+  const ss = $('[data-testid="satir-sayisi"]');
+  const os = $('[data-testid="oturum-sayisi"]');
+  if (ss) ss.textContent = String(satirlar.length);
+  if (os) os.textContent = String(oturumlar.size);
+}
+
+function csvKacis(deger) {
+  const m = String(deger ?? '');
+  return /[",\n]/.test(m) ? '"' + m.replace(/"/g, '""') + '"' : m;
+}
+
+function csvIndir() {
+  const satirlar = satirlariOku();
+  const govde = satirlar.map((s) => SUTUNLAR.map((k) => csvKacis(s[k])).join(','));
+  const csv = [SUTUNLAR.join(',')].concat(govde).join('\n') + '\n';
+
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'oturumlar-' + rastgeleId() + '.csv';
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+}
+
+/* =====================================================================
+   8. PARİTE MODU (?parite=1)
+   ===================================================================== */
+
+async function pariteModu() {
+  ekranGoster('ekran-parite');
+  await modelYukle();
+  $('[data-testid="parite-durumu"]').textContent = modelDurumu;
+
+  let referans;
+  try {
+    const y = await fetch('../tests/parite.json', { cache: 'no-store' });
+    referans = await y.json();
+  } catch (e) {
+    $('[data-testid="parite-durumu"]').textContent = 'parite.json okunamadı';
+    return;
+  }
+
+  const govde = $('#parite-govde');
+  govde.innerHTML = '';
+
+  for (let i = 0; i < referans.girdiler.length; i++) {
+    const girdi = referans.girdiler[i];
+    const vektor = OZELLIKLER.map((ad) => Number(girdi[ad]));
+    const p = await tahminEt(vektor);
+
+    const tr = document.createElement('tr');
+    tr.innerHTML = '<td></td><td><code></code></td><td data-cy="p"></td>';
+    tr.children[0].textContent = String(i + 1);
+    tr.querySelector('code').textContent = vektor.join(', ');
+    tr.children[2].textContent = p === null ? 'yok' : p.toFixed(6);
+    tr.children[2].dataset.testid = 'parite-p-' + i;
+    govde.appendChild(tr);
+  }
+
+  $('[data-testid="parite-durumu"]').textContent = modelDurumu + ' · ' + referans.girdiler.length + ' girdi';
+}
+
+/* =====================================================================
+   9. BAŞLAT
+   ===================================================================== */
+
+$('[data-testid="bastan-basla"]').addEventListener('click', () => {
+  /* AC8 — kararlar sıfırlanır, profil korunur */
+  durum.kararlar = [];
+  durum.sahne = 0;
+  durum.senaryoId = null;
+  menuyuCiz();
+  ekranGoster('ekran-menu');
+});
+
+/* Testlerin ve parite betiğinin kullandığı yüzey. Oyunun kendisi de aynı
+   fonksiyonları kullanır — ikinci bir çıkarım yolu YOK. */
+window.primerV2 = {
+  tahminEt,
+  ozellikVektoru,
+  okumaOrani,
+  get modelDurumu() { return modelDurumu; },
+  get yapilandirma() { return yapilandirma; },
+  get durum() { return durum; },
+  OZELLIKLER,
+  SUTUNLAR,
+};
+
+(async function basla() {
+  profilKur();
+  sayaclariGuncelle();
+
+  if (new URLSearchParams(location.search).has('parite')) {
+    await pariteModu();
+    return;
+  }
+
+  ekranGoster('ekran-profil');
+  await modelYukle();
+  modelPaneliGuncelle();
+})();
+</script>
+</body>
+</html>

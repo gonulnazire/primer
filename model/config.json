@@ -1,0 +1,99 @@
+{
+  "ad": "primer-refleks",
+  "surum": "2.0.0",
+  "olusturulma": "2026-11-01",
+  "amac": "Bir karar noktasına girildiğinde o kararın refleksle verilme olasılığını tahmin eder. Çıktı yalnızca yansıma duraklamasını tetikler; hangi seçeneğin seçileceğine dair hiçbir yetkisi yok.",
+  "girdi": {
+    "ad": "girdi",
+    "tip": "float32",
+    "bicim": [
+      null,
+      6
+    ],
+    "ozellikler": [
+      "sahne_no",
+      "sinif_kodu",
+      "onceki_karar_suresi_sn",
+      "onceki_okuma_orani",
+      "onceki_refleks_sayisi",
+      "oturum_gecen_sure_sn"
+    ]
+  },
+  "cikti": {
+    "sinif_etiketleri": [
+      "dusunerek",
+      "refleks"
+    ],
+    "olasilik_indeksi": 1,
+    "aciklama": "olasılık tensörünün 1. indeksi p(refleks)"
+  },
+  "karar_esigi": 0.6,
+  "etiket_kurali": {
+    "refleks": "okuma_orani < 0.4",
+    "okuma_orani": "min(1, metin_gorunur_sure_sn / (yeni_kelime_sayisi/200*60))"
+  },
+  "eval": {
+    "kapi_metrigi": "roc_auc_gruplu_kat_disi",
+    "kapi_esigi": 0.7,
+    "sonuc": 0.7391,
+    "gecti": true,
+    "gruplama": "oturum_id (StratifiedGroupKFold, 5 kat)"
+  },
+  "metrikler": {
+    "roc_auc_gruplu": 0.7391,
+    "roc_auc_gruplamasiz": 0.7314,
+    "roc_auc_tek_ozellik_taban": 0.7046,
+    "kat_kat_auc": [
+      0.7094,
+      0.7792,
+      0.7597,
+      0.7875,
+      0.7203
+    ],
+    "dengeli_dogruluk": 0.7002,
+    "kesinlik": 0.8043,
+    "duyarlilik": 0.4868,
+    "f1": 0.6066,
+    "cogunluk_sinifi_dogrulugu": 0.5778,
+    "karmasiklik_matrisi": [
+      [
+        95,
+        9
+      ],
+      [
+        39,
+        37
+      ]
+    ]
+  },
+  "veri": {
+    "dosya": "data/oturumlar.csv",
+    "satir": 180,
+    "oturum": 60,
+    "gercek_satir": 0,
+    "sentetik_satir": 180,
+    "gercek_oturum": 0,
+    "refleks_orani": 0.4222
+  },
+  "egitim": {
+    "model": "StandardScaler + LogisticRegression(class_weight=balanced)",
+    "tohum": 42,
+    "target_opset": 18,
+    "katsayilar": {
+      "sahne_no": 0.7046321970361312,
+      "sinif_kodu": 0.1740730801763032,
+      "onceki_karar_suresi_sn": -0.025834124813271516,
+      "onceki_okuma_orani": -0.23725834890449407,
+      "onceki_refleks_sayisi": 0.928267123954064,
+      "oturum_gecen_sure_sn": -0.5311987773558856
+    },
+    "kesisim": 0.05890887087835646,
+    "surumler": {
+      "python": "3.14.2",
+      "scikit-learn": "1.9.1",
+      "skl2onnx": "1.20.0",
+      "onnxruntime": "1.31.1"
+    }
+  },
+  "onnx_sklearn_max_fark": 8.54209635248182e-08
+}

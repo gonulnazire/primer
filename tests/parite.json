@@ -1,0 +1,69 @@
+{
+  "_aciklama": "Diferansiyel test referansı. p_kahin değerleri Python onnxruntime ile üretildi; tarayıcı çıkarımı bunlardan en çok 'tolerans' kadar sapabilir (spec.md AC12).",
+  "model": {
+    "dosya": "model/model.onnx",
+    "sha256": "3316d470031ec635d33b3b051f4e1ba5a5c1e97267368c1277f07ec46838508e",
+    "surum": "2.0.0"
+  },
+  "tolerans": 0.0001,
+  "ozellikler": [
+    "sahne_no",
+    "sinif_kodu",
+    "onceki_karar_suresi_sn",
+    "onceki_okuma_orani",
+    "onceki_refleks_sayisi",
+    "oturum_gecen_sure_sn"
+  ],
+  "girdiler": [
+    {
+      "aciklama": "1. karar noktası, 1-2. sınıf, geçmiş yok — taban oran",
+      "sahne_no": 1,
+      "sinif_kodu": 0,
+      "onceki_karar_suresi_sn": 0.0,
+      "onceki_okuma_orani": 0.0,
+      "onceki_refleks_sayisi": 0,
+      "oturum_gecen_sure_sn": 0.4,
+      "p_kahin": 0.357527316
+    },
+    {
+      "aciklama": "2. karar noktası, önceki karar hızlı ve okunmamış — refleks eğilimi",
+      "sahne_no": 2,
+      "sinif_kodu": 0,
+      "onceki_karar_suresi_sn": 2.1,
+      "onceki_okuma_orani": 0.12,
+      "onceki_refleks_sayisi": 1,
+      "oturum_gecen_sure_sn": 4.0,
+      "p_kahin": 0.816090047
+    },
+    {
+      "aciklama": "2. karar noktası, önceki karar yavaş ve okunmuş — düşünerek eğilimi",
+      "sahne_no": 2,
+      "sinif_kodu": 1,
+      "onceki_karar_suresi_sn": 24.5,
+      "onceki_okuma_orani": 1.0,
+      "onceki_refleks_sayisi": 0,
+      "oturum_gecen_sure_sn": 27.0,
+      "p_kahin": 0.15979442
+    },
+    {
+      "aciklama": "3. karar noktası, iki refleks karar arkasında — en yüksek olasılık",
+      "sahne_no": 3,
+      "sinif_kodu": 0,
+      "onceki_karar_suresi_sn": 1.4,
+      "onceki_okuma_orani": 0.05,
+      "onceki_refleks_sayisi": 2,
+      "oturum_gecen_sure_sn": 9.5,
+      "p_kahin": 0.97368747
+    },
+    {
+      "aciklama": "3. karar noktası, iki dikkatli karar ve uzun oturum — en düşük olasılık",
+      "sahne_no": 3,
+      "sinif_kodu": 1,
+      "onceki_karar_suresi_sn": 18.0,
+      "onceki_okuma_orani": 0.95,
+      "onceki_refleks_sayisi": 0,
+      "oturum_gecen_sure_sn": 61.0,
+      "p_kahin": 0.069156051
+    }
+  ]
+}
