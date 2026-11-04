@@ -614,9 +614,9 @@ Sabitlenen commit, eylem eşiği ve devreye alma oranı `web/site.json`'da tutul
 - [x] Model gereksinimi, eval metriği ve kabul eşiği — §10, eğitimden önce yazıldı
 - [x] Üç yeni kabul örneği — **AC11, AC12, AC13** (§7)
 - [x] Veri sözlüğü — [`data/SOZLUK.md`](./data/SOZLUK.md) · 23 sütun, etiket kuralı, KVKK notu
-- [ ] **En az 15 gerçek oturum** — `data/oturumlar.csv`. Veri toplama modu hazır; şu an 0 gerçek / 180 sentetik satır
+- [x] **En az 15 gerçek oturum** — `data/oturumlar.csv` · **69 gerçek oturum / 207 gerçek satır** (+60 sentetik). İlk toplama turu tek etiketli çıktığı için kullanılamadı ve yeniden toplandı; azınlık sınıfının hâlâ ağırlıkla sentetik olduğu `model/README.md` §5'te raporlanıyor
 - [x] Tekrarlanabilir eğitim ve eval kapısı — [`train.py`](./train.py) · tek komut, tohum 42, `--esik 0.99` ile kapının kapattığı doğrulandı (çıkış kodu 2, `model/` değişmedi)
-- [x] Artefakt ve sözleşme — `model/model.onnx` (553 bayt, opset 18) + `model/config.json` · ONNX/sklearn farkı 8.5e-08
+- [x] Artefakt ve sözleşme — `model/model.onnx` (553 bayt, opset 18) + `model/config.json` · ONNX/sklearn farkı 9.1e-08
 - [x] Model kartı — [`model/README.md`](./model/README.md) · Mitchell vd. (2019) yapısında
 - [ ] **Hugging Face yayını, commit'e sabit URL** — adımlar [`RELEASE.md`](./RELEASE.md) §3'te; hesap açılmayı bekliyor
 - [x] Devreye alma ve geri alma planı + ödünleşim matrisi — [`RELEASE.md`](./RELEASE.md) §2 ve §4

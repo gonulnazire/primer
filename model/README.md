@@ -60,7 +60,7 @@ Bir öğrenci Primer simülasyonunda bir karar noktasına girdiğinde, **o karar
 | **Notlandırma, değerlendirme, sıralama** | Model dikkat ölçmüyor; ekranda geçen süreyi ölçüyor. Bir öğrenciyi "dikkatsiz" diye etiketlemek için kullanılamaz |
 | **Öğrenci hakkında kalıcı profil çıkarmak** | Veri oturum içidir ve simülasyon hiçbir şey saklamaz (`spec.md` §2) |
 | **Primer dışındaki herhangi bir uygulama** | Özellikler bu üç senaryonun okuma yüküne göre ölçeklenmiş; başka içerikte `yeni_kelime_sayisi` tabanı farklı olur |
-| **İşe alım, akademik yaptırım, disiplin** | Tahmin edici gücü %74 AUC; birey hakkında karar vermeye yakın bile değil |
+| **İşe alım, akademik yaptırım, disiplin** | Tahmin edici gücü %83 AUC; birey hakkında karar vermeye yakın bile değil |
 | **Dikkat eksikliği veya öğrenme güçlüğü göstergesi** | Klinik hiçbir geçerliliği yok. Hızlı okuyan, metni önceden görmüş veya telefonu elinden bırakmış bir öğrenci aynı sinyali üretir |
 
 ---
@@ -71,12 +71,12 @@ Bir öğrenci Primer simülasyonunda bir karar noktasına girdiğinde, **o karar
 |---|---|
 | Dosya | [`data/oturumlar.csv`](../data/oturumlar.csv) · sözlük: [`data/SOZLUK.md`](../data/SOZLUK.md) |
 | Satır birimi | **bir karar noktası** (bir oturum = 3 satır) |
-| Toplam satır | 180 |
-| Gerçek / sentetik | **0 / 180** — aşağıdaki sınıra bakın |
-| Oturum | 60 |
-| Refleks oranı | %42.2 |
+| Toplam satır | 267 |
+| Gerçek / sentetik | **207 / 60** — aşağıdaki sınıra bakın |
+| Oturum | 89 (69 gerçek) |
+| Refleks oranı | %85.4 (gerçek veride %96.6) |
 
-**Şu anki sürüm yalnızca sentetik veriyle eğitilmiştir.** Gerçek oturumlar toplandıkça `python data/veri_derle.py --sentetik N` ile yeniden derlenip `python train.py` ile yeniden eğitilecek; `config.json` → `veri.gercek_oturum` o anki gerçek sayıyı taşır. Bu kartın 3. bölümü her yeniden eğitimde güncellenmelidir.
+**Bu sürüm gerçek veriyle eğitilmiştir** (satırların %77'si gerçek), ancak **azınlık sınıfı hâlâ ağırlıkla sentetiktir** — 39 "düşünerek" satırının 32'si sentetik, yalnız 7'si gerçek. Aşağıdaki 5. bölümün 1. sınırı bunun ne anlama geldiğini açıklıyor. `config.json` → `veri.gercek_oturum` o anki gerçek sayıyı taşır. Bu kartın 3. bölümü her yeniden eğitimde güncellenmelidir.
 
 Sentetik üretici kuralı ve tohumu `data/veri_derle.py` başlığında ve `README.md`'de yazılıdır (tohum 42). Sentetik veri gerçek verinin yerine geçmez: kişi içi korelasyonu taklit eder ama gerçek bir öğrencinin davranış dağılımını bilemez.
 
@@ -95,27 +95,28 @@ okuma_orani   = min(1, metin_gorunur_sure_sn / (yeni_kelime_sayisi / 200 * 60))
 
 | Ölçüt | Sonuç | Not |
 |---|---|---|
-| **ROC-AUC (gruplu, kat dışı)** | **0.7391** | **Eval kapısı bu sayıya bakar** — eşik 0.70 |
-| ROC-AUC (gruplamasız) | 0.7314 | Yalnız karşılaştırma için |
-| ROC-AUC (tek özellik tabanı) | 0.7046 | Yalnız `onceki_refleks_sayisi` |
-| Dengeli doğruluk @0.60 | 0.7002 | |
-| Kesinlik / Duyarlılık / F1 | 0.804 / 0.487 / 0.607 | |
-| Çoğunluk sınıfı doğruluğu | 0.5778 | Taban çizgisi |
-| Karmaşıklık matrisi | `[[95, 9], [39, 37]]` | `[[TN, FP], [FN, TP]]` |
-| ONNX / sklearn en büyük fark | 8.5e-08 | Sınır 1e-4 |
+| **ROC-AUC (gruplu, kat dışı)** | **0.8341** | **Eval kapısı bu sayıya bakar** — eşik 0.70 |
+| ROC-AUC (gruplamasız) | 0.8429 | Yalnız karşılaştırma için |
+| ROC-AUC (tek özellik tabanı) | 0.7634 | Yalnız `onceki_refleks_sayisi` |
+| Kat kat AUC | 0.808 / 0.853 / 0.802 / 0.749 / 0.881 | Katlar arası yayılım |
+| Dengeli doğruluk @0.60 | 0.7729 | |
+| Kesinlik / Duyarlılık / F1 | 0.979 / 0.623 / 0.761 | |
+| Çoğunluk sınıfı doğruluğu | 0.8539 | Taban çizgisi |
+| Karmaşıklık matrisi | `[[36, 3], [86, 142]]` | `[[TN, FP], [FN, TP]]` |
+| ONNX / sklearn en büyük fark | 9.1e-08 | Sınır 1e-4 |
 
-**Gruplama neden önemli:** satır birimi karar noktası olduğu için bir oturum üç satır üretiyor ve bu satırlar bağımsız değil (aynı kişi, aynı profil, aynı dikkat düzeyi). Sıradan `StratifiedKFold` aynı oturumun satırlarını farklı katlara dağıtır; model eğitimde gördüğü oturumun kardeş satırını testte tahmin eder ve AUC olduğundan iyi çıkar. Ölçüm `StratifiedGroupKFold` ile `oturum_id` üzerinden gruplanıyor. Bu veri setinde fark küçük (0.7391 vs 0.7314) ama yönü bilinmeden raporlanamaz.
+**Gruplama neden önemli:** satır birimi karar noktası olduğu için bir oturum üç satır üretiyor ve bu satırlar bağımsız değil (aynı kişi, aynı profil, aynı dikkat düzeyi). Sıradan `StratifiedKFold` aynı oturumun satırlarını farklı katlara dağıtır; model eğitimde gördüğü oturumun kardeş satırını testte tahmin eder ve AUC olduğundan iyi çıkar. Ölçüm `StratifiedGroupKFold` ile `oturum_id` üzerinden gruplanıyor. Bu veri setinde gruplu AUC gruplamasızdan **düşük** (0.8341 vs 0.8429) — yani gruplama beklendiği yönde çalışıyor ve iyimserliği kırpıyor. Önceki sentetik-yalnız sürümde yön tersiydi (0.7391 vs 0.7314); o da gruplamanın etkisinin veri setine bağlı olduğunu ve yön bilinmeden raporlanamayacağını gösteriyor.
 
-**Model tabanı ne kadar geçiyor:** altı özellikli model 0.7391, tek özellikli (`onceki_refleks_sayisi`) taban 0.7046. Yani diğer beş özellik **+0.035 AUC** katıyor — küçük. Dürüst okunuşu şu: bu modelin öğrendiği şeyin büyük kısmı "refleks davranış tekrar eder"dir. Geri kalan özellikler bunu biraz iyileştiriyor.
+**Model tabanı ne kadar geçiyor:** altı özellikli model 0.8341, tek özellikli (`onceki_refleks_sayisi`) taban 0.7634. Yani diğer beş özellik **+0.071 AUC** katıyor — sentetik-yalnız sürümdeki +0.035'in iki katı, ama hâlâ mütevazı. Dürüst okunuşu değişmiyor: bu modelin öğrendiği şeyin büyük kısmı "refleks davranış tekrar eder"dir.
 
-**Kesinlik duyarlılıktan önce geliyor** ve eşik bu yüzden 0.60, 0.50 değil. Yanlış pozitif, metni gerçekten okuyan bir öğrenciyi boşuna durdurmak demek; bu akışa zarar verir. Bedeli düşük duyarlılık (0.487): refleks kararların yaklaşık yarısı yakalanmıyor. Bu, bilinçli bir ödünleşim.
+**Kesinlik duyarlılıktan önce geliyor** ve eşik bu yüzden 0.60, 0.50 değil. Yanlış pozitif, metni gerçekten okuyan bir öğrenciyi boşuna durdurmak demek; bu akışa zarar verir. Bedeli düşük duyarlılık (0.623): refleks kararların yaklaşık %38'i yakalanmıyor. Bu, bilinçli bir ödünleşim.
 
 ---
 
 ## 5. Sınırlar
 
-1. **Gerçek veri henüz yok (en önemli sınır).** Şu anki sürüm sentetik veriyle eğitildi; sentetik üretici, gerçek öğrenci davranışı hakkındaki *varsayımlarımızı* kodluyor. Model o varsayımları öğrendi, gerçekliği değil.
-2. **Bağımsızlık varsayımı tam karşılanmıyor.** Aynı kişinin birden çok oturumu var; gruplama oturum düzeyinde, kişi düzeyinde değil. Kişi düzeyinde gruplama daha doğru olurdu ama 3 katılımcıda 5 katlı çapraz doğrulama kurulamaz.
+1. **Azınlık sınıfı ağırlıkla sentetik (en önemli sınır).** Veri artık %77 gerçek, ama bu çoğunluk sınıfından geliyor: 39 "düşünerek" satırının yalnız **7'si gerçek**, 32'si sentetik. Model "düşünerek" davranışının neye benzediğini büyük ölçüde sentetik üreticiden, yani o davranış hakkındaki *varsayımlarımızdan* öğrendi. 0.8341 AUC bu yüzden yukarı yanlı okunmalıdır: ölçtüğü şeyin bir kısmı modelin sentetik üreticinin yapısını yakalama başarısıdır. Eşiği geçmesi kapıyı formel olarak açar, gerçek öğrenci davranışında aynı başarıyı kanıtlamaz.
+2. **Bağımsızlık varsayımı tam karşılanmıyor.** Aynı kişinin birden çok oturumu var; gruplama oturum düzeyinde, kişi düzeyinde değil. Kişi düzeyinde gruplama daha doğru olurdu ama katılımcı sayısı 5 katlı çapraz doğrulama için az. Ayrıca ikinci toplama turunda üç katılımcı **`kisi_kodu` alanını boş bıraktı**, bu yüzden o 51 satırın kişi kimliği yalnız dosya bazında biliniyor — kişi düzeyinde gruplama artık veriden kurulamaz.
 3. **1. karar noktasında model neredeyse kör.** Geçmişe dayalı dört özellik 0 olduğu için tahmin, sınıf başına taban orana yakın (~0.44) ve eşiği geçmiyor — yani duraklama pratikte hiç 1. sahnede açılmıyor. Bu kabul edildi: ilk karardan önce müdahale etmek için bir gerekçe de yok.
 4. **`okuma_orani` okumayı değil ekranda geçen süreyi ölçüyor.** Telefonu bırakıp dönen, hızlı okuyan veya metni önceden görmüş öğrenci yanlış sınıflanır. `document.visibilityState` sekme arka plandayken sayacı durdurur ama kullanıcı ekrana bakmayı bıraktığını tarayıcıya bildirmez.
 5. **`sahne_no` ile `oturum_gecen_sure_sn` korelasyonlu.** Eşdoğrusallık katsayı yorumunu zayıflatıyor; tahmin gücünü değil.

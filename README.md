@@ -107,18 +107,18 @@ Sonuç: v1 uygulaması canlı Sokratik katmanı taşımaya devam ediyor, v2 sayf
 
 | Ölçüt | Sonuç |
 |---|---|
-| ROC-AUC (gruplu, kat dışı) — **eval kapısı** | **0.7391** · eşik 0.70 |
-| ROC-AUC (gruplamasız) | 0.7314 |
-| Tek özellik tabanı (`onceki_refleks_sayisi`) | 0.7046 |
-| Kesinlik / Duyarlılık @0.60 | 0.804 / 0.487 |
-| ONNX / sklearn en büyük fark | 8.5e-08 (sınır 1e-4) |
+| ROC-AUC (gruplu, kat dışı) — **eval kapısı** | **0.8341** · eşik 0.70 |
+| ROC-AUC (gruplamasız) | 0.8429 |
+| Tek özellik tabanı (`onceki_refleks_sayisi`) | 0.7634 |
+| Kesinlik / Duyarlılık @0.60 | 0.979 / 0.623 |
+| ONNX / sklearn en büyük fark | 9.1e-08 (sınır 1e-4) |
 | Tarayıcı / Python kahini en büyük fark | **< 1e-4** (AC12, Cypress) |
 
 Üç dürüstlük notu, ayrıntısı [`model/README.md`](./model/README.md)'de:
 
-1. **Şu anki model yalnız sentetik veriyle eğitildi.** Gerçek oturumlar toplandıkça yeniden eğitilecek.
+1. **Azınlık sınıfı ağırlıkla sentetik.** Satırların %77'si gerçek (207/267), ama 39 "düşünerek" satırının yalnız 7'si gerçek. AUC bu yüzden yukarı yanlı okunmalı; ayrıntı model kartının 5. bölümünde.
 2. **Çapraz doğrulama oturum bazında gruplanıyor.** Bir oturum 3 satır üretiyor ve bu satırlar bağımsız değil; gruplamazsak model eğitimde gördüğü oturumun kardeş satırını testte tahmin eder ve AUC sahte biçimde yükselir.
-3. **Altı özelliğin katkısı küçük.** Tek özellikli taban 0.7046, tam model 0.7391 — yani öğrenilenin çoğu "refleks davranış tekrar eder".
+3. **Altı özelliğin katkısı mütevazı.** Tek özellikli taban 0.7634, tam model 0.8341 — yani öğrenilenin çoğu "refleks davranış tekrar eder".
 
 ### Sentetik veri üretici kuralı ve tohumu
 
@@ -212,7 +212,7 @@ Bu süs değil gereklilik çıktı: değerlendirme sırasında uç noktanın hı
 | Kişiselleştirme | Profilin üç boyutu da modelin çerçevesini değiştiriyor |
 | Uçtan uca test (v1) | **20/20 geçiyor** (13 simülasyon + 7 sohbet), v1'in 10 kabul örneğini karşılıyor |
 | Uçtan uca test (v2) | **14/14 geçiyor** (3 parite + 11 akış/uyum), AC11–AC13'ü karşılıyor |
-| Model eval kapısı (v2) | **AUC 0.7391** · eşik 0.70 · eşik altı sürüm yayınlanmıyor |
+| Model eval kapısı (v2) | **AUC 0.8341** · eşik 0.70 · eşik altı sürüm yayınlanmıyor |
 | Diferansiyel test (v2) | Tarayıcı ile Python kahini arasındaki en büyük fark **< 1e-4** |
 
 Ayrıntı: [`TUTOR-EVAL.md`](./TUTOR-EVAL.md)
@@ -264,7 +264,7 @@ python train.py                               # veri -> eval kapısı -> model/
 `train.py` için veri gerekiyor; depo veriyle birlikte geliyor. Sıfırdan derlemek istenirse:
 
 ```bash
-python data/veri_derle.py --sentetik 60       # ham gerçek CSV'ler + sentetik -> data/oturumlar.csv
+python data/veri_derle.py --sentetik 20       # ham gerçek CSV'ler + sentetik -> data/oturumlar.csv
 ```
 
 > **Python sürümü:** Başlangıç reposu 3.12 hedefliyor; bu depo **Python 3.14.2** ile kuruldu ve `scikit-learn 1.9.1` / `skl2onnx 1.20.0` / `onnxruntime 1.31.1` sorunsuz çalışıyor.
@@ -307,7 +307,7 @@ Koşum videoları `cypress/videos/` altında oluşur.
 
 ### v2 sınırları
 
-- **Model şu an yalnız sentetik veriyle eğitildi.** Gerçek oturumlar toplanınca yeniden eğitilecek; `model/config.json` → `veri.gercek_oturum` o anki gerçek sayıyı taşıyor. Sentetik veri, gerçek davranışı değil onun hakkındaki varsayımlarımızı kodluyor.
+- **Model gerçek veriyle eğitildi, ama azınlık sınıfı ağırlıkla sentetik.** 69 gerçek oturum / 207 gerçek satır + 60 sentetik satır. 39 "düşünerek" satırının yalnız 7'si gerçek olduğu için model bu sınıfı büyük ölçüde sentetik üreticiden öğrendi; sentetik veri gerçek davranışı değil onun hakkındaki varsayımlarımızı kodluyor. `model/config.json` → `veri.gercek_oturum` o anki gerçek sayıyı taşıyor.
 - **11 MB'lık çalışma zamanı, 553 baytlık model.** `onnxruntime-web` ilk yüklemede ~11.4 MB indiriyor (ölçüldü). Aynı tahmin 10 satır JavaScript'le yazılabilirdi; ONNX yine de kullanıldı çünkü ödevin asıl kazanımı tek modelin birden çok tüketicide aynı sonucu verdiğini kanıtlamak. Gerekçe [`RELEASE.md`](./RELEASE.md) §2'de.
 - **v2 sayfasında canlı Sokratik geri bildirim yok.** v1'in `/api/socratic` uç noktası CORS başlığı döndürmüyor; ayrı origin çağıramıyor. Sayfa yedek soruyu gösteriyor ve bu sınırı kullanıcıya söylüyor.
 - **`okuma_orani` okumayı değil ekranda geçen süreyi ölçüyor.** Hızlı okuyan veya telefonu bırakıp dönen öğrenci yanlış sınıflanabilir.
