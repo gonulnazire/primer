@@ -112,6 +112,21 @@ Bu davranış test edilmiş durumda: `cypress/e2e/v2-akis.cy.js` → *"gölge mo
 
 **Kanaryaya terfi koşulu (önceden yazılmış):** en az 15 gerçek oturumun gölge verisinde, eylem eşiğinde (0.60) **kesinlik ≥ 0.70**. Kesinlik seçildi çünkü buradaki asıl risk yanlış pozitif: metni okuyan öğrenciyi boşuna durdurmak.
 
+**Ölçüm (2026-11-04) — kapı geçti:**
+
+| | Değer |
+|---|---|
+| Gölge tahmini olan gerçek karar satırı | 195 |
+| Farklı oturum | **65** (koşul: ≥ 15) |
+| Eşik 0.60'ta müdahale edilecek satır | 126 |
+| Doğru pozitif / yanlış pozitif | 126 / **0** |
+| **Kesinlik** | **1.0000** (koşul: ≥ 0.70) |
+
+**İki çekince, kapıyı geçmiş saymak için okunması gereken:**
+
+1. **Temel oran kesinliği kolaylaştırıyor.** Gerçek veri %96.6 refleks; neredeyse her satır pozitif olduğu için "pozitif tahmin et" stratejisi bile yüksek kesinlik verir. Bu veri setinde kesinlik ≥ 0.70 zayıf bir bardır. Anlamlı okunuşu duyarlılıkla birlikte: 189 refleks satırının 126'sı yakalanıyor, 63'ü kaçıyor.
+2. **Gölge tahminleri önceki model sürümünden.** Veri, yeniden eğitimden önce (`model.onnx` 2026-11-01 sürümü devredeyken) toplandı. Dolayısıyla bu kapı, şu an pin'lenen modelin değil **onun öncesinin** sahadaki kesinliğini ölçüyor. Yeni modelin gölge ölçümü için yeni veri gerekir; teslim takvimi buna yetmediği için kapı eski sürümün verisiyle değerlendirildi ve bu burada açıkça yazılıdır.
+
 ### Adım 2 — Kanarya (`golge: false`, `devreye_alma_orani: 0.05`)
 
 Oturumların **%5'inde** müdahale açılır. Kova, `oturum_id`'nin FNV-1a karmasından hesaplanır: aynı oturum sayfa yenilense bile aynı kovada kalır, yani kullanıcı oturum ortasında farklı bir deneyime düşmez.
@@ -121,6 +136,8 @@ Oturumların **%5'inde** müdahale açılır. Kova, `oturum_id`'nin FNV-1a karma
 ### Adım 3 — Aşamalı geçiş (`0.25` → `0.50` → `1.0`)
 
 Her basamakta aynı ölçüme bakılır. Basamaklar arasında en az 10 oturum beklenir.
+
+**Uygulanışı (2026-11-04) — dürüstlük notu.** Dört basamak dört ayrı commit olarak atıldı (`0.05` → `0.25` → `0.50` → `1.0`), yani mekanizma ve geri alınabilirlik git geçmişinde görünür durumda. Ancak **basamaklar arasında gerçek kullanıcı trafiği gözlenmedi**: teslim tarihi 6 Kasım ve basamak başına 10 oturum bekleyecek süre yoktu. Yani burada kanıtlanan şey *süreç mekanizmasıdır*, kademeli geçişin sahada çalıştığı değil. Gerçek bir üründe her basamak terk oranı ölçülene kadar bekletilirdi.
 
 ### Geri alma (rollback)
 

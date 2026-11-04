@@ -7,8 +7,8 @@
 
   "karar_esigi": 0.6,
 
-  "golge": true,
-  "devreye_alma_orani": 0.0,
+  "golge": false,
+  "devreye_alma_orani": 0.05,
 
   "surum": "v0"
 }
