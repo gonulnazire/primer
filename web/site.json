@@ -1,9 +1,9 @@
 {
   "_aciklama": "Primer v2 devreye alma yapılandırması. Modelin HANGİ sürümü, KİME ve NE kadar açık olduğu burada tutulur; ayrıntı RELEASE.md. Bu dosyayı değiştirmek tek commit'tir, dolayısıyla her devreye alma adımı geri alınabilir.",
 
-  "model_url": null,
+  "model_url": "https://huggingface.co/gonulnazire/primer-refleks-onnx/resolve/1e02139d1968b4cbad05a6893f32f7a570300a63/model.onnx",
   "yerel_yedek": "../model/model.onnx",
-  "model_pin": null,
+  "model_pin": "1e02139d1968b4cbad05a6893f32f7a570300a63",
 
   "karar_esigi": 0.6,
 

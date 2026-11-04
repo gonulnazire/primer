@@ -69,19 +69,26 @@ https://huggingface.co/<kullanici>/<repo>/resolve/<commit>/model.onnx
 
 ### Yayın adımları
 
+**Yapıldı (2026-11-04).** Depo: <https://huggingface.co/gonulnazire/primer-refleks-onnx> · commit `1e02139d1968b4cbad05a6893f32f7a570300a63`.
+
 ```bash
-# 1. Hugging Face hesabı + write token (hesap henüz açılmadı — aşağıdaki "Bekleyen" bölümüne bakın)
+# 1. Hugging Face hesabı + write token
 pip install -r requirements.txt
-hf auth login
+hf auth login          # etkileşimli; betikte HfApi(token=...) kullanıldı
 
 # 2. Public model reposu açıp artefaktları yükle
 hf repo create primer-refleks-onnx --type model
-hf upload <kullanici>/primer-refleks-onnx model/ . --repo-type model
+hf upload gonulnazire/primer-refleks-onnx model/ . --repo-type model
 
 # 3. Dönen commit hash'ini web/site.json'a yaz
-#    "model_url": "https://huggingface.co/<kullanici>/primer-refleks-onnx/resolve/<commit>/model.onnx"
-#    "model_pin": "<commit>"
+#    "model_url": "https://huggingface.co/gonulnazire/primer-refleks-onnx/resolve/1e02139d1968b4cbad05a6893f32f7a570300a63/model.onnx"
+#    "model_pin": "1e02139d1968b4cbad05a6893f32f7a570300a63"
 ```
+
+Pin'lenen URL yayından sonra doğrulandı: indirilen baytların sha256'sı yerel
+`model/model.onnx` ile birebir aynı, ve CORS başlıkları yönlendirmenin iki
+ucunda da mevcut (302'de `https://gonulnazire.github.io`, son cevapta `*`) —
+yani tarayıcı modeli Pages origin'inden çekebiliyor.
 
 ---
 
@@ -134,14 +141,17 @@ Hafiften ağıra, hepsi tek commit:
 
 | Ne | Durum | Kim |
 |---|---|---|
-| Hugging Face hesabı + write token | **bekliyor** — hesap açılacak | kullanıcı |
-| `model_url` / `model_pin` doldurulması | HF yayınından sonra | yayın betiği |
+| Hugging Face hesabı + write token | **tamam** (2026-11-04) | kullanıcı |
+| `model_url` / `model_pin` doldurulması | **tamam** — commit `1e02139d1968b4cbad05a6893f32f7a570300a63` pin'lendi | — |
 | GitHub Pages'in açılması (`main` / kök) | **tamam** — <https://gonulnazire.github.io/primer/web/> · model yayında yükleniyor, gölge modunda ölçüyor | — |
-| En az 15 gerçek oturum (3 kişi × 5) | bekliyor — veri toplama modu hazır | kullanıcı |
-| Gerçek veriyle yeniden eğitim ve model kartının 3. bölümü | veri geldikten sonra | `veri_derle.py` + `train.py` |
+| En az 15 gerçek oturum (3 kişi × 5) | **tamam** — 69 gerçek oturum / 207 karar | kullanıcı |
+| Gerçek veriyle yeniden eğitim ve model kartının 3. bölümü | **tamam** — AUC 0.8341, kapı açık; model kartı §3–§5 güncellendi | — |
+| Devreye alma (`golge: false` → kanarya → %100) | bekliyor — demo video öncesi | — |
 | 60–90 sn demo video | bekliyor | kullanıcı |
 
-HF yayını yapılana kadar `site.json` → `model_url: null` ve uygulama `yerel_yedek` (`../model/model.onnx`) ile çalışır. Parite testi bu haliyle de geçerlidir; yalnızca "commit'e sabitlenmiş URL" kalemi HF yayınını bekliyor.
+`site.json` → `model_url` artık HF'teki commit'e sabitlenmiş adresi taşıyor; `yerel_yedek` (`../model/model.onnx`) kaldırılmadı ve HF erişilemezse uygulama ona düşer. Bu, §4'teki geri alma zincirinin en alt halkası.
+
+**Çalışma zamanı CDN'i değişti (2026-11-04).** `onnxruntime-web@1.20.1` artık jsdelivr yerine unpkg'dan yükleniyor. Gerekçe ölçüm: jsdelivr'dan `ort-wasm-simd-threaded.wasm` (2.8 MB) 120 saniyede inmedi, aynı dosya unpkg'dan 18.9 saniyede indi. Model inmediğinde uygulama müdahalesiz çalışmaya devam ediyor ama uyum katmanı sessizce devre dışı kalıyor ve AC12/AC13 testleri zaman aşımına düşüyor. **Sürüm pin'i korundu** — değişen yalnız host, dolayısıyla parite testinin "iki çalışma zamanı aynı sürüm" gerekçesi bozulmadı.
 
 ### Yapılmadı: kendi sunucumuzda üçüncü tüketici (bonus)
 
