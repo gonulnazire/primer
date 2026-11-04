@@ -8,7 +8,7 @@ Bu dosya ara verip döndüğünde bağlamı kurtarmak için. Kararların gerekç
 
 ## Tek cümlede durum
 
-Model **gerçek veriyle yeniden eğitildi ve eval kapısı 0.8341 ile açıldı**; kalan iş Hugging Face yayını (bir **write** token bekliyor), canlı testlerin yenilenmesi, demo video ve teslim formu.
+Teknik tarafın tamamı bitti: model gerçek veriyle yeniden eğitildi (**AUC 0.8341**), Hugging Face'e yayınlanıp commit'e pin'lendi, **34/34 test canlı yayına karşı geçiyor**. Kalan iş yalnız **devreye alma + demo video + teslim formu**.
 
 ## Biten
 
@@ -23,18 +23,21 @@ Model **gerçek veriyle yeniden eğitildi ve eval kapısı 0.8341 ile açıldı*
 | `web/index.html` + GitHub Pages yayını | ✅ <https://gonulnazire.github.io/primer/web/> |
 | **Dengeleyici veri toplama** | ✅ 3 yeni CSV · 17 oturum / 51 karar · 7 "düşünerek" satırı |
 | **Gerçek veriyle yeniden eğitim** | ✅ **AUC 0.8341 ≥ 0.70** · `model/` ve `tests/parite.json` yenilendi |
-| Belgeler yeni ölçümlere göre güncel | ✅ `model/README.md` §3–§5, `README.md`, `spec.md` §11 |
+| Belgeler yeni ölçümlere göre güncel | ✅ `model/README.md` §3–§5, `README.md`, `spec.md` §11, `RELEASE.md` §3/§5 |
+| **Hugging Face yayını + commit pin** | ✅ <https://huggingface.co/gonulnazire/primer-refleks-onnx> · commit `1e02139d1968b4cbad05a6893f32f7a570300a63` · `site.json`'da pin'li |
+| **Çalışma zamanı CDN'i unpkg'a alındı** | ✅ jsdelivr bu ağdan inmiyordu (§3'teki tuzak) |
+| **Testler (canlı yayına karşı)** | ✅ **34/34** · 1 dk 43 sn · videolar bu koşumdan |
 
 ## Bekleyen (sırayla)
 
 | # | İş | Kimde | Not |
 |---|---|---|---|
-| 1 | **Push onayı** | kullanıcı | Yeni model + katılımcı CSV'leri public depoya gidiyor; Pages ancak push'tan sonra yeni modeli sunar |
-| 2 | **Hugging Face `write` token** | kullanıcı | 2026-11-04'te verilen `primer` token'ı **`read`** rolündeydi, depo açamıyor. Yeni token **Write** olmalı; eski token iptal edilmeli (sohbete düştü) |
-| 3 | HF yayını + commit pin → `web/site.json` | ajan | `RELEASE.md` §3 |
-| 4 | Cypress tam takım, canlı Pages'e karşı | ajan | Push + HF pin sonrası, yoksa testler eski modeli ölçer |
-| 5 | Demo video 60–90 sn | kullanıcı | Önce `site.json`'da `golge:false`, `devreye_alma_orani:1.0` (ajan yapar) |
-| 6 | Teslim formu (4 link) | kullanıcı | <https://forms.gle/pr9QVEfLJuaFiXw39> |
+| 1 | **Devreye alma** | ajan | `site.json`: `golge:false` + `devreye_alma_orani` 0.05 → 0.25 → 0.50 → 1.0. `RELEASE.md` §4; her adım tek commit, geri alınabilir. Demo video için 1.0 gerekiyor |
+| 2 | Demo video 60–90 sn | kullanıcı | Devreye alma bittikten sonra. Model inerken birkaç saniye beklemen gerekebilir (ağ) |
+| 3 | Teslim formu (4 link) | kullanıcı | <https://forms.gle/pr9QVEfLJuaFiXw39> · hangi dört link istendiğini formda doğrula |
+| 4 | HF token'larını iptal et | kullanıcı | İki token da sohbete düştü: <https://huggingface.co/settings/tokens> |
+
+**`surum` alanı açık kalem:** `site.json` → `"surum": "v0"`. Bu alan toplanan her CSV satırının `surum` sütununa geçiyor. Yeni veri toplanacaksa anlamlı bir etikete çevrilmeli (ör. `v2.0.0`), yoksa gelecekteki satırlar hangi model devredeyken üretildiğini yanlış söyler. `RELEASE.md` §3 bunu istemediği için değiştirilmedi.
 
 ---
 
@@ -85,7 +88,8 @@ npx cypress run -x v2Url=https://gonulnazire.github.io/primer/web/
 | **Eval kapısı kapanırsa eşiği düşürme** | Eşik eğitimden önce yazıldı; sonradan düşürmek ödevin tek kuralını ihlal eder | Daha çok veri topla; geçmezse `RELEASE.md`'ye "eşik tutmadı, yayınlanmadı" yaz |
 | **`parite.py --yaz` atlanırsa** | `tests/parite.py` modelin sha256'sını karşılaştırıp **durur** | Model her değiştiğinde referansı yenile |
 | **Cypress `--spec` ile alt küme koşmak** | `videosFolder` koşumdan önce boşaltılır → koşulmayan spec'lerin **commit'li videoları silinir** | Videoları yenilerken tüm takımı koş; silindiyse `git checkout -- cypress/videos/` |
-| **Push etmeden Cypress koşmak** | Testler canlı Pages'e karşı koşuyor; push edilmemiş model test edilmez, videolar eski modeli gösterir | Önce push, sonra test |
+| **Push etmeden Cypress koşmak** | Testler canlı Pages'e karşı koşuyor; push edilmemiş model test edilmez, videolar eski modeli gösterir | Önce push, sonra test. Pages'in yayması ~40–100 sn sürüyor; canlı dosyayı yoklayarak doğrula |
+| **CDN yavaşlığı testleri düşürür** | `onnxruntime-web` ~11 MB wasm indiriyor. 2026-11-04'te jsdelivr'dan 2.8 MB dosya 120 sn'de inmedi → model hiç "hazır" olmadı → AC12 + üç AC13 testi 30 sn'de zaman aşımına düştü (30/34). Uygulama müdahalesiz çalışmaya devam ettiği için hata **sessiz** | Host unpkg'a alındı (`web/index.html`, sürüm pin'i korundu). Testler yine düşerse önce CDN hızını ölç, modeli suçlama |
 | **`web/site.json`'ı veri toplarken değiştirme** | `golge:true` olmalı; müdahale açıkken toplanan veri modelin kendi etkisini içerir | Demo videosuna kadar gölgede kalsın |
 | **Konsol kodlaması** | Windows cp1254, betikler UTF-8'e zorluyor | `PYTHONUTF8=1` ile koş |
 
