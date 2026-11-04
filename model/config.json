@@ -1,7 +1,7 @@
 {
   "ad": "primer-refleks",
   "surum": "2.0.0",
-  "olusturulma": "2026-11-01",
+  "olusturulma": "2026-11-04",
   "amac": "Bir karar noktasına girildiğinde o kararın refleksle verilme olasılığını tahmin eder. Çıktı yalnızca yansıma duraklamasını tetikler; hangi seçeneğin seçileceğine dair hiçbir yetkisi yok.",
   "girdi": {
     "ad": "girdi",
@@ -35,59 +35,59 @@
   "eval": {
     "kapi_metrigi": "roc_auc_gruplu_kat_disi",
     "kapi_esigi": 0.7,
-    "sonuc": 0.7391,
+    "sonuc": 0.8341,
     "gecti": true,
     "gruplama": "oturum_id (StratifiedGroupKFold, 5 kat)"
   },
   "metrikler": {
-    "roc_auc_gruplu": 0.7391,
-    "roc_auc_gruplamasiz": 0.7314,
-    "roc_auc_tek_ozellik_taban": 0.7046,
+    "roc_auc_gruplu": 0.8341,
+    "roc_auc_gruplamasiz": 0.8429,
+    "roc_auc_tek_ozellik_taban": 0.7634,
     "kat_kat_auc": [
-      0.7094,
-      0.7792,
-      0.7597,
-      0.7875,
-      0.7203
+      0.8084,
+      0.8533,
+      0.8016,
+      0.7486,
+      0.8813
     ],
-    "dengeli_dogruluk": 0.7002,
-    "kesinlik": 0.8043,
-    "duyarlilik": 0.4868,
-    "f1": 0.6066,
-    "cogunluk_sinifi_dogrulugu": 0.5778,
+    "dengeli_dogruluk": 0.7729,
+    "kesinlik": 0.9793,
+    "duyarlilik": 0.6228,
+    "f1": 0.7614,
+    "cogunluk_sinifi_dogrulugu": 0.8539,
     "karmasiklik_matrisi": [
       [
-        95,
-        9
+        36,
+        3
       ],
       [
-        39,
-        37
+        86,
+        142
       ]
     ]
   },
   "veri": {
     "dosya": "data/oturumlar.csv",
-    "satir": 180,
-    "oturum": 60,
-    "gercek_satir": 0,
-    "sentetik_satir": 180,
-    "gercek_oturum": 0,
-    "refleks_orani": 0.4222
+    "satir": 267,
+    "oturum": 89,
+    "gercek_satir": 207,
+    "sentetik_satir": 60,
+    "gercek_oturum": 69,
+    "refleks_orani": 0.8539
   },
   "egitim": {
     "model": "StandardScaler + LogisticRegression(class_weight=balanced)",
     "tohum": 42,
     "target_opset": 18,
     "katsayilar": {
-      "sahne_no": 0.7046321970361312,
-      "sinif_kodu": 0.1740730801763032,
-      "onceki_karar_suresi_sn": -0.025834124813271516,
-      "onceki_okuma_orani": -0.23725834890449407,
-      "onceki_refleks_sayisi": 0.928267123954064,
-      "oturum_gecen_sure_sn": -0.5311987773558856
+      "sahne_no": 1.0827511073474765,
+      "sinif_kodu": 0.01391159226347753,
+      "onceki_karar_suresi_sn": -0.5276431653239753,
+      "onceki_okuma_orani": -0.07607735005149044,
+      "onceki_refleks_sayisi": 1.097027736928164,
+      "oturum_gecen_sure_sn": -0.9543065158569493
     },
-    "kesisim": 0.05890887087835646,
+    "kesisim": 1.3392706179251384,
     "surumler": {
       "python": "3.14.2",
       "scikit-learn": "1.9.1",
@@ -95,5 +95,5 @@
       "onnxruntime": "1.31.1"
     }
   },
-  "onnx_sklearn_max_fark": 8.54209635248182e-08
+  "onnx_sklearn_max_fark": 9.095886865928549e-08
 }

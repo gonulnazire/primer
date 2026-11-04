@@ -2,7 +2,7 @@
   "_aciklama": "Diferansiyel test referansı. p_kahin değerleri Python onnxruntime ile üretildi; tarayıcı çıkarımı bunlardan en çok 'tolerans' kadar sapabilir (spec.md AC12).",
   "model": {
     "dosya": "model/model.onnx",
-    "sha256": "3316d470031ec635d33b3b051f4e1ba5a5c1e97267368c1277f07ec46838508e",
+    "sha256": "830ad6b84d41b0650865a4d90326026e3ea27b3a8628dc7f66e513b873aeb604",
     "surum": "2.0.0"
   },
   "tolerans": 0.0001,
@@ -23,7 +23,7 @@
       "onceki_okuma_orani": 0.0,
       "onceki_refleks_sayisi": 0,
       "oturum_gecen_sure_sn": 0.4,
-      "p_kahin": 0.357527316
+      "p_kahin": 0.431854218
     },
     {
       "aciklama": "2. karar noktası, önceki karar hızlı ve okunmamış — refleks eğilimi",
@@ -33,7 +33,7 @@
       "onceki_okuma_orani": 0.12,
       "onceki_refleks_sayisi": 1,
       "oturum_gecen_sure_sn": 4.0,
-      "p_kahin": 0.816090047
+      "p_kahin": 0.818066955
     },
     {
       "aciklama": "2. karar noktası, önceki karar yavaş ve okunmuş — düşünerek eğilimi",
@@ -43,7 +43,7 @@
       "onceki_okuma_orani": 1.0,
       "onceki_refleks_sayisi": 0,
       "oturum_gecen_sure_sn": 27.0,
-      "p_kahin": 0.15979442
+      "p_kahin": 0.001003087
     },
     {
       "aciklama": "3. karar noktası, iki refleks karar arkasında — en yüksek olasılık",
@@ -53,7 +53,7 @@
       "onceki_okuma_orani": 0.05,
       "onceki_refleks_sayisi": 2,
       "oturum_gecen_sure_sn": 9.5,
-      "p_kahin": 0.97368747
+      "p_kahin": 0.970617294
     },
     {
       "aciklama": "3. karar noktası, iki dikkatli karar ve uzun oturum — en düşük olasılık",
@@ -63,7 +63,7 @@
       "onceki_okuma_orani": 0.95,
       "onceki_refleks_sayisi": 0,
       "oturum_gecen_sure_sn": 61.0,
-      "p_kahin": 0.069156051
+      "p_kahin": 7.1943e-05
     }
   ]
 }

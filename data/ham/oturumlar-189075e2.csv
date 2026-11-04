@@ -1,0 +1,13 @@
+oturum_id,kisi_kodu,oturum_sira,senaryo,sahne_no,sinif,sinif_kodu,rol,hedef,onceki_karar_suresi_sn,onceki_okuma_orani,onceki_refleks_sayisi,oturum_gecen_sure_sn,karar_suresi_sn,metin_gorunur_sure_sn,yeni_kelime_sayisi,okuma_orani,vazgecilen_dokunma,secenek_etiketi,refleks,golge_tahmin,kaynak,surum
+eb9c0ea6,,1,vize-haftasi,1,1-2,0,backend,proje,0,0,0,0.88,0.88,0.9,43,0.0698,0,orta,1,,gercek,v0
+eb9c0ea6,,1,vize-haftasi,2,1-2,0,backend,proje,0.88,0.0698,1,1.41,0.53,0.5,23,0.0725,0,orta,1,,gercek,v0
+eb9c0ea6,,1,vize-haftasi,3,1-2,0,backend,proje,0.53,0.0725,2,2.14,0.73,0.8,20,0.1333,0,riskli,1,,gercek,v0
+d64af355,,2,vize-haftasi,1,1-2,0,backend,proje,0,0,0,0.78,0.78,0.8,43,0.062,0,orta,1,,gercek,v0
+d64af355,,2,vize-haftasi,2,1-2,0,backend,proje,0.78,0.062,1,1.57,0.79,0.8,23,0.1159,0,riskli,1,,gercek,v0
+d64af355,,2,vize-haftasi,3,1-2,0,backend,proje,0.79,0.1159,2,2.24,0.67,0.7,20,0.1167,0,riskli,1,,gercek,v0
+acf50bf0,,3,donem-projesi,1,1-2,0,backend,proje,0,0,0,1,1,1,55,0.0606,0,orta,1,,gercek,v0
+acf50bf0,,3,donem-projesi,2,1-2,0,backend,proje,1,0.0606,1,2.06,1.06,1,30,0.1111,1,riskli,1,,gercek,v0
+acf50bf0,,3,donem-projesi,3,1-2,0,backend,proje,1.06,0.1111,2,2.87,0.81,0.8,26,0.1026,0,saglam,1,,gercek,v0
+07d26d1c,,4,vize-haftasi,1,1-2,0,backend,proje,0,0,0,4.43,4.43,4.5,43,0.3488,0,saglam,1,,gercek,v0
+07d26d1c,,4,vize-haftasi,2,1-2,0,backend,proje,4.43,0.3488,1,8.35,3.92,3.9,23,0.5652,0,orta,0,,gercek,v0
+07d26d1c,,4,vize-haftasi,3,1-2,0,backend,proje,3.92,0.5652,1,10.46,2.1,2.1,20,0.35,0,riskli,1,,gercek,v0
