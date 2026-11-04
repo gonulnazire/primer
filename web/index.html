@@ -413,8 +413,15 @@
   onnxruntime-web SÜRÜMÜ SABİT. Gerekçe: parite testi iki çalışma zamanı arasındaki
   farkı 1e-4 toleransla ölçüyor; "latest" çekmek, ölçtüğümüz şeyin bizim haberimiz
   olmadan değişmesi demek olurdu.
+
+  HOST unpkg, jsdelivr değil — ölçümle seçildi (2026-11-04). jsdelivr'dan
+  ort-wasm-simd-threaded.wasm (2.8 MB) 120 saniyede inmedi; aynı dosya unpkg'dan
+  18.9 saniyede indi (595 KB/s). Model inmediğinde uygulama müdahalesiz çalışmaya
+  devam ediyor ama uyum katmanı sessizce devre dışı kalıyor ve AC12/AC13 testleri
+  30 saniyede zaman aşımına düşüyor. Sürüm sabitliği korundu: değişen yalnız host,
+  dolayısıyla parite gerekçesi bozulmadı.
 -->
-<script src="https://cdn.jsdelivr.net/npm/onnxruntime-web@1.20.1/dist/ort.min.js"></script>
+<script src="https://unpkg.com/onnxruntime-web@1.20.1/dist/ort.min.js"></script>
 <script>
 /* =====================================================================
    1. SENARYO VERİSİ — spec.md §5'ten birebir
@@ -688,7 +695,7 @@ async function modelYukle() {
   }
 
   try {
-    ort.env.wasm.wasmPaths = 'https://cdn.jsdelivr.net/npm/onnxruntime-web@1.20.1/dist/';
+    ort.env.wasm.wasmPaths = 'https://unpkg.com/onnxruntime-web@1.20.1/dist/';
     ort.env.logLevel = 'error';
     oturumuORT = await ort.InferenceSession.create(url);
     modelDurumu = 'hazır';
