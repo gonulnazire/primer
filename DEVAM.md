@@ -26,16 +26,16 @@ Teknik tarafın tamamı bitti: model gerçek veriyle yeniden eğitildi (**AUC 0.
 | Belgeler yeni ölçümlere göre güncel | ✅ `model/README.md` §3–§5, `README.md`, `spec.md` §11, `RELEASE.md` §3/§5 |
 | **Hugging Face yayını + commit pin** | ✅ <https://huggingface.co/gonulnazire/primer-refleks-onnx> · commit `1e02139d1968b4cbad05a6893f32f7a570300a63` · `site.json`'da pin'li |
 | **Çalışma zamanı CDN'i unpkg'a alındı** | ✅ jsdelivr bu ağdan inmiyordu (§3'teki tuzak) |
-| **Testler (canlı yayına karşı)** | ✅ **34/34** · 1 dk 43 sn · videolar bu koşumdan |
+| **Testler (canlı yayına karşı)** | ✅ **34/34** · 1 dk 26 sn · `golge:false`/oran `1.0` haline karşı · videolar bu koşumdan |
+| **Devreye alma (RELEASE.md §4)** | ✅ 4 kademe, 4 commit · terfi kapısı ölçüldü (kesinlik 1.0000, 65 oturum) · iki çekincesi §4'te yazılı |
 
 ## Bekleyen (sırayla)
 
 | # | İş | Kimde | Not |
 |---|---|---|---|
-| 1 | **Devreye alma** | ajan | `site.json`: `golge:false` + `devreye_alma_orani` 0.05 → 0.25 → 0.50 → 1.0. `RELEASE.md` §4; her adım tek commit, geri alınabilir. Demo video için 1.0 gerekiyor |
-| 2 | Demo video 60–90 sn | kullanıcı | Devreye alma bittikten sonra. Model inerken birkaç saniye beklemen gerekebilir (ağ) |
-| 3 | Teslim formu (4 link) | kullanıcı | <https://forms.gle/pr9QVEfLJuaFiXw39> · hangi dört link istendiğini formda doğrula |
-| 4 | HF token'larını iptal et | kullanıcı | İki token da sohbete düştü: <https://huggingface.co/settings/tokens> |
+| 1 | Demo video 60–90 sn | kullanıcı | Uygulama hazır: `golge:false`, oran `1.0`, model müdahale ediyor. Hızlı tıklayınca yansıma duraklaması açılır |
+| 2 | Teslim formu (4 link) | kullanıcı | <https://forms.gle/pr9QVEfLJuaFiXw39> · hangi dört link istendiğini formda doğrula |
+| 3 | HF token'larını iptal et | kullanıcı | İki token da sohbete düştü: <https://huggingface.co/settings/tokens> |
 
 **`surum` alanı açık kalem:** `site.json` → `"surum": "v0"`. Bu alan toplanan her CSV satırının `surum` sütununa geçiyor. Yeni veri toplanacaksa anlamlı bir etikete çevrilmeli (ör. `v2.0.0`), yoksa gelecekteki satırlar hangi model devredeyken üretildiğini yanlış söyler. `RELEASE.md` §3 bunu istemediği için değiştirilmedi.
 
