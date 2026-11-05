@@ -9,9 +9,9 @@ v1 öğrenciye kriz senaryolarında karar verdirip kendi varsayımını sorgulat
 | # | Ne | Link |
 |---|---|---|
 | 1 | **Repo** | <https://github.com/gonulnazire/primer> |
-| 2 | **Hugging Face modeli (commit'li)** | _HF hesabı açılınca doldurulacak — `web/site.json` → `model_url`_ |
+| 2 | **Hugging Face modeli (commit'li)** | <https://huggingface.co/gonulnazire/primer-refleks-onnx/tree/1e02139d1968b4cbad05a6893f32f7a570300a63> · repo kökü: <https://huggingface.co/gonulnazire/primer-refleks-onnx> |
 | 3 | **Canlı uygulama (v2, GitHub Pages)** | <https://gonulnazire.github.io/primer/web/> |
-| 4 | **60–90 sn demo video (v2)** | _çekilecek: aynı sahnede iki oyuncu, modelin iki farklı kararı_ |
+| 4 | **60–90 sn demo video (v2)** | <https://youtube.com/shorts/ZswUKGP096k> |
 
 ## Teslim linkleri — v1
 

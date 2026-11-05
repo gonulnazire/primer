@@ -1,6 +1,6 @@
 # DEVAM.md — nerede kaldık
 
-**Son güncelleme:** 2026-11-04 · **Teslim:** 6 Kasım 2026, 23:59
+**Son güncelleme:** 2026-11-05 · **Teslim:** 6 Kasım 2026, 23:59
 
 Bu dosya ara verip döndüğünde bağlamı kurtarmak için. Kararların gerekçeleri ilgili belgelerde; burada yalnız **durum** ve **sıradaki komutlar** var.
 
@@ -8,7 +8,7 @@ Bu dosya ara verip döndüğünde bağlamı kurtarmak için. Kararların gerekç
 
 ## Tek cümlede durum
 
-Teknik tarafın tamamı bitti: model gerçek veriyle yeniden eğitildi (**AUC 0.8341**), Hugging Face'e yayınlanıp commit'e pin'lendi, **34/34 test canlı yayına karşı geçiyor**. Kalan iş yalnız **devreye alma + demo video + teslim formu**.
+Teknik tarafın tamamı bitti: model gerçek veriyle yeniden eğitildi (**AUC 0.8341**), Hugging Face'e yayınlanıp commit'e pin'lendi, **34/34 test canlı yayına karşı geçiyor**. Devreye alma dört kademede tamamlandı ve demo video çekilip README'ye işlendi. Kalan iş yalnız **teslim formu + HF token iptali**.
 
 ## Biten
 
@@ -28,14 +28,15 @@ Teknik tarafın tamamı bitti: model gerçek veriyle yeniden eğitildi (**AUC 0.
 | **Çalışma zamanı CDN'i unpkg'a alındı** | ✅ jsdelivr bu ağdan inmiyordu (§3'teki tuzak) |
 | **Testler (canlı yayına karşı)** | ✅ **34/34** · 1 dk 26 sn · `golge:false`/oran `1.0` haline karşı · videolar bu koşumdan |
 | **Devreye alma (RELEASE.md §4)** | ✅ 4 kademe, 4 commit · terfi kapısı ölçüldü (kesinlik 1.0000, 65 oturum) · iki çekincesi §4'te yazılı |
+| **Demo video (v2)** | ✅ <https://youtube.com/shorts/ZswUKGP096k> · `README.md` teslim linkleri tablosunda |
+| **Teslim linkleri tablosu** | ✅ dört satırın tamamı dolu (HF linki commit'e sabit: `1e02139d…`) |
 
 ## Bekleyen (sırayla)
 
 | # | İş | Kimde | Not |
 |---|---|---|---|
-| 1 | Demo video 60–90 sn | kullanıcı | Uygulama hazır: `golge:false`, oran `1.0`, model müdahale ediyor. Hızlı tıklayınca yansıma duraklaması açılır |
-| 2 | Teslim formu (4 link) | kullanıcı | <https://forms.gle/pr9QVEfLJuaFiXw39> · hangi dört link istendiğini formda doğrula |
-| 3 | HF token'larını iptal et | kullanıcı | İki token da sohbete düştü: <https://huggingface.co/settings/tokens> |
+| 1 | Teslim formu (4 link) | kullanıcı | <https://forms.gle/pr9QVEfLJuaFiXw39> · dört link `README.md` başında hazır; hangi dördünün istendiğini formda doğrula |
+| 2 | HF token'larını iptal et | kullanıcı | İki token da sohbete düştü: <https://huggingface.co/settings/tokens> |
 
 **`surum` alanı açık kalem:** `site.json` → `"surum": "v0"`. Bu alan toplanan her CSV satırının `surum` sütununa geçiyor. Yeni veri toplanacaksa anlamlı bir etikete çevrilmeli (ör. `v2.0.0`), yoksa gelecekteki satırlar hangi model devredeyken üretildiğini yanlış söyler. `RELEASE.md` §3 bunu istemediği için değiştirilmedi.
 
