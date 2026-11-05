@@ -1,7 +1,9 @@
 # Primer v2 — eğitim ve ONNX dışa aktarım bağımlılıkları
 #
 # Hedef yorumlayıcı: Python 3.12 (başlangıç reposu huggingface-hello-web ile aynı).
-# Bu makinede 3.14.2 kurulu; wheel'ler 3.14 için yoksa 3.12 ile venv açılmalı.
+# Bu depo 3.14.2 ile kuruldu, tüm bağımlılıkların 3.14 wheel'i mevcut ve belgelerdeki
+# ölçümler o yorumlayıcıyla alındı (model/config.json -> egitim.surumler). 3.14 wheel'i
+# bulunmayan bir ortamda 3.12 ile venv açılmalı.
 #
 # scikit-learn ve skl2onnx SABİT sürümde: train.py'nin başka bir makinede
 # birebir aynı metriği üretmesi gerekiyor (ödev: tekrarlanabilir eğitim).
@@ -12,5 +14,9 @@ scikit-learn==1.9.1
 skl2onnx==1.20.0
 onnx>=1.17
 onnxruntime>=1.20
+# pandas KASITLI olarak sabit değil: yalnız ham CSV'leri birleştiriyor, metriğe etkisi
+# yok. Ama Windows Smart App Control açıkken pandas 3.1.0'ın reshape .pyd dosyası hash
+# bazında engellenebiliyor; train.py o zaman "DLL load failed while importing reshape"
+# ile düşer. Çaresi pandas==3.0.5 (ayrıntı: README -> Kurulum).
 pandas>=2.2
 huggingface_hub>=2.3

@@ -36,12 +36,13 @@ v1 öğrenciye kriz senaryolarında karar verdirip kendi varsayımını sorgulat
 
 **Test durumu: 34/34 geçiyor** — v1 regresyonu **20/20** (dosyalar değiştirilmedi) + v2 **14/14**.
 
-v2'nin 14 testi **canlı GitHub Pages adresine karşı** koşuldu (2026-11-01), yerel sunucuya değil: diferansiyel test, yayındaki tarayıcı çıkarımının Python kahiniyle `1e-4` içinde uyuştuğunu gösteriyor.
+Tam takım en son **2026-11-04**'te, **devreye alma tamamlandıktan sonra** koşuldu — yani `web/site.json` `golge: false` / `devreye_alma_orani: 1.0` haldeyken, model gerçekten müdahale ederken. v2'nin 14 testi **canlı GitHub Pages adresine karşı** koşuyor, yerel sunucuya değil: diferansiyel test, yayındaki tarayıcı çıkarımının Python kahiniyle `1e-4` içinde uyuştuğunu gösteriyor. Koşum 1 dk 26 sn sürdü; `cypress/videos/` altındaki videolar bu koşumdan.
 
 ```bash
-npx cypress run --spec "cypress/e2e/parite.cy.js,cypress/e2e/v2-akis.cy.js" \
-  -x v2Url=https://gonulnazire.github.io/primer/web/
+npx cypress run -x v2Url=https://gonulnazire.github.io/primer/web/   # 34 test
 ```
+
+**Devreye alma tamamlandı (2026-11-04).** Gölge → kanarya (%5) → %25 → %50 → %100; her basamak `web/site.json`'da tek bir sayının değiştiği ayrı bir commit, dolayısıyla her adım geri alınabilir ve git geçmişinde görünür. Kanaryaya terfi koşulu veri görülmeden önce yazılmıştı (eylem eşiğinde kesinlik ≥ 0.70) ve ölçüldü: **kesinlik 1.0000**, 65 oturum. İki çekincesi — temel oranın kesinliği kolaylaştırması ve gölge verisinin **önceki** model sürümünden gelmesi — [`RELEASE.md`](./RELEASE.md) §4'te açıkça yazılı.
 
 ## Puanlama kalemleri nerede — v1
 
@@ -214,6 +215,7 @@ Bu süs değil gereklilik çıktı: değerlendirme sırasında uç noktanın hı
 | Uçtan uca test (v2) | **14/14 geçiyor** (3 parite + 11 akış/uyum), AC11–AC13'ü karşılıyor |
 | Model eval kapısı (v2) | **AUC 0.8341** · eşik 0.70 · eşik altı sürüm yayınlanmıyor |
 | Diferansiyel test (v2) | Tarayıcı ile Python kahini arasındaki en büyük fark **< 1e-4** |
+| Devreye alma (v2) | Gölge → kanarya → **%100**, 4 basamak / 4 commit · terfi kapısı ölçüldü: kesinlik **1.0000** (65 oturum, eşik 0.70) |
 
 Ayrıntı: [`TUTOR-EVAL.md`](./TUTOR-EVAL.md)
 
@@ -267,15 +269,26 @@ python train.py                               # veri -> eval kapısı -> model/
 python data/veri_derle.py --sentetik 20       # ham gerçek CSV'ler + sentetik -> data/oturumlar.csv
 ```
 
-> **Python sürümü:** Başlangıç reposu 3.12 hedefliyor; bu depo **Python 3.14.2** ile kuruldu ve `scikit-learn 1.9.1` / `skl2onnx 1.20.0` / `onnxruntime 1.31.1` sorunsuz çalışıyor.
+> **Python sürümü:** Başlangıç reposu 3.12 hedefliyor; bu depo **Python 3.14.2** ile kuruldu ve `scikit-learn 1.9.1` / `skl2onnx 1.20.0` / `onnxruntime 1.31.1` sorunsuz çalışıyor. Belgelerdeki tüm ölçümler o yorumlayıcıyla alındı (`model/config.json` → `egitim.surumler`).
+
+> **Windows'ta bir tuzak:** Smart App Control açıkken `pandas 3.1.0`'ın `reshape.cp314-win_amd64.pyd` dosyası hash bazında engellenebiliyor ve `train.py` `DLL load failed while importing reshape` hatasıyla düşüyor. Çare **`pandas==3.0.5`** kurmak; aynı sürümü yeniden kurmak işe yaramaz, çünkü dosya bayt bayt aynı olduğu için aynı verdikti alır. Smart App Control'ü kapatmak geri alınamaz bir işlem olduğu için önerilmiyor. `requirements.txt` pandas'ı kasıtlı olarak sabitlemiyor: pandas yalnız ham CSV'leri birleştiriyor, metriğe etkisi yok — sabitlemek herkesi Windows'a özgü bir engel yüzünden eski sürüme zorlardı.
 
 ## Testleri çalıştırma
+
+```bash
+# tüm takım (34 test) — videoları yenileyen koşum budur
+npx cypress run -x v2Url=https://gonulnazire.github.io/primer/web/
+```
+
+> **`--spec` ile alt küme koşmak commit'li videoları siler.** Cypress her koşumdan önce `videosFolder`'ı boşaltıyor (`trashAssetsBeforeRuns` varsayılanı), dolayısıyla alt küme koşumu **koşulmayan spec'lerin videolarını** siler — ki bu depoda videolar teslim kanıtı. Alt kümeyi yalnız videolar umurunda değilken koş; silinirse `git checkout -- cypress/videos/` geri getirir. (`trashAssetsBeforeRuns: false` denendi ve geri alındı: silmeyi durduruyor ama üzerine yazmak yerine `ad (1).mp4` kopyası üretiyor, yani takip edilen videolar bayatlıyor. Gerekçe `cypress.config.js`'te yazılı.)
+
+Alt kümeleri ayrı ayrı koşmak gerekirse:
 
 ```bash
 # v1 regresyonu — yayındaki AI Studio uygulamasına koşar (20 test)
 npx cypress run --spec "cypress/e2e/primer.cy.js,cypress/e2e/sohbet.cy.js"
 
-# v2 — önce yerel sunucu, sonra model katmanı testleri (14 test)
+# v2 — model katmanı testleri (14 test); hedef varsayılan olarak yerel sunucu
 npm run v2          # ayrı terminalde: http://localhost:4173/web/
 npx cypress run --spec "cypress/e2e/parite.cy.js,cypress/e2e/v2-akis.cy.js"
 ```

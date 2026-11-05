@@ -1,6 +1,6 @@
 # RELEASE.md — Primer v2.0 yayın, devreye alma ve geri alma
 
-**Sürüm:** 2.0.0 · **Tarih:** 2026-11-01 · **Artefakt:** `model/model.onnx` (553 bayt, ONNX opset 18)
+**Sürüm:** 2.0.0 · **Tarih:** 2026-11-01 · **Son güncelleme:** 2026-11-05 · **Artefakt:** `model/model.onnx` (553 bayt, ONNX opset 18)
 **İlgili belgeler:** [`spec.md`](./spec.md) §10 · [`model/README.md`](./model/README.md) (model kartı) · [`data/SOZLUK.md`](./data/SOZLUK.md)
 
 ---
@@ -154,7 +154,7 @@ Hafiften ağıra, hepsi tek commit:
 
 ---
 
-## 5. Bekleyen adımlar
+## 5. Yayın adımları — durum
 
 | Ne | Durum | Kim |
 |---|---|---|
@@ -163,8 +163,10 @@ Hafiften ağıra, hepsi tek commit:
 | GitHub Pages'in açılması (`main` / kök) | **tamam** — <https://gonulnazire.github.io/primer/web/> · model yayında yükleniyor, gölge modunda ölçüyor | — |
 | En az 15 gerçek oturum (3 kişi × 5) | **tamam** — 69 gerçek oturum / 207 karar | kullanıcı |
 | Gerçek veriyle yeniden eğitim ve model kartının 3. bölümü | **tamam** — AUC 0.8341, kapı açık; model kartı §3–§5 güncellendi | — |
-| Devreye alma (`golge: false` → kanarya → %100) | bekliyor — demo video öncesi | — |
-| 60–90 sn demo video | bekliyor | kullanıcı |
+| Devreye alma (`golge: false` → kanarya → %100) | **tamam** (2026-11-04) — dört basamak, dört commit; ölçümü ve iki çekincesi §4'te | — |
+| 60–90 sn demo video | **tamam** — <https://youtube.com/shorts/ZswUKGP096k> · `README.md` teslim linkleri tablosunda | kullanıcı |
+| Teslim formu (4 link) | bekliyor | kullanıcı |
+| HF write token'larının iptali | bekliyor — token sohbete düştü, <https://huggingface.co/settings/tokens> | kullanıcı |
 
 `site.json` → `model_url` artık HF'teki commit'e sabitlenmiş adresi taşıyor; `yerel_yedek` (`../model/model.onnx`) kaldırılmadı ve HF erişilemezse uygulama ona düşer. Bu, §4'teki geri alma zincirinin en alt halkası.
 
